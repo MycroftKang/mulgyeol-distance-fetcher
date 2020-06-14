@@ -22,7 +22,7 @@ build:
   stage: build
   script:
     - echo "$Env:CI_PROJECT_DIR"
-    - Invoke-WebRequest -Uri https://www.python.org/ftp/python/3.7.7/python-3.7.7-amd64.exe -OutFile python-3.7.5-amd64.exe
+    - Invoke-WebRequest -Uri https://www.python.org/ftp/python/3.7.7/python-3.7.7-amd64.exe -OutFile python-3.7.7-amd64.exe
     - dir
     - Start-Process -FilePath "python-3.7.7-amd64.exe" -ArgumentList "/quiet Include_test=0 Shortcuts=0" -Wait
     - dir $Env:LOCALAPPDATA\Programs\Python
