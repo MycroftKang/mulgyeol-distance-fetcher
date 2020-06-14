@@ -5,17 +5,22 @@ def isfile(filename):
     return os.path.isfile(filename)
 
 def version(v):
-    return list(map(int, (v.split("."))))
+    ls = v.split(".")
+    re = list(map(int, (ls[:3])))
+    re.append(ls[3])
+    return re
 
 def isnewupdate(base, last):
     return base[:-1] != last[:-1]
 
 def signature(ver):
+    ver = version(ver)
+
     with open('src/version_info.txt', 'rt') as f:
         text = f.read()
 
-    text.replace('<version:tuple>', '{},{},{},0'.format(*ver[:3]))
-    text.replace('<version:str>', '{}.{}.{}.{}'.format(*ver))
+    text = text.replace('<version:tuple>', '{},{},{},0'.format(*ver[:3]))
+    text = text.replace('<version:str>', '{}.{}.{}.{}'.format(*ver))
 
     with open('src/version_info.txt', 'wt') as f:
         f.write(text)
