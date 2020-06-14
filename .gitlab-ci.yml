@@ -1,0 +1,120 @@
+stages:
+  - build
+  - version
+  - package
+  - deploy
+
+.shared_windows_runners:
+  before-script:
+    - git clone $Env:GIT_URL
+    - mv mdf-resources\resources resources
+  tags:
+    - shared-windows
+    - windows
+    - windows-1809
+  only:
+    - master
+    - tags
+
+build:
+  extends:
+    - .shared_windows_runners
+  stage: build
+  script:
+    - echo "$Env:CI_PROJECT_DIR"
+    - Invoke-WebRequest -Uri https://www.python.org/ftp/python/3.7.7/python-3.7.7-amd64.exe -OutFile python-3.7.5-amd64.exe
+    - dir
+    - Start-Process -FilePath "python-3.7.7-amd64.exe" -ArgumentList "/quiet Include_test=0 Shortcuts=0" -Wait
+    - dir $Env:LOCALAPPDATA\Programs\Python
+    - $Env:Path += ";$Env:LOCALAPPDATA\Programs\Python\Python37\"
+    - $Env:Path += ";$Env:LOCALAPPDATA\Programs\Python\Python37\Scripts\"
+    - python -m pip install --upgrade pip
+    - python -V
+    - pip install -r requirements.txt
+    - mkdir build
+    - cd src
+    - pyinstaller main.spec
+    - pyinstaller msu.spec
+    - mv dist\main $Env:CI_PROJECT_DIR\build\app
+    - mv dist\msu $Env:CI_PROJECT_DIR\build\update
+  artifacts:
+    expire_in: 1h
+    paths:
+    - build\
+
+version-beta:
+  image: python:latest
+  stage: version
+  script:
+    - python package/vc.py -b
+  artifacts:
+    expire_in: 3h
+    paths:
+      - package/info/
+      - output/
+  only:
+    - master
+
+version-stable:
+  image: python:latest
+  stage: version
+  script:
+    - python package/vc.py -r
+  artifacts:
+    expire_in: 3h
+    paths:
+      - public/
+      - output/
+      - package/info/
+  only:
+    - tags
+
+pre-release:
+  extends:
+    - .shared_windows_runners
+  stage: package
+  script:
+    - $ver=cat output/last_version.txt
+    - choco install nsis -y
+    - $Env:Path += ";C:\Program Files (x86)\NSIS\"
+    - makensis.exe /INPUTCHARSET UTF8 /DPRODUCT_VERSION=$ver package\MDF.nsi
+    - mv package\*.exe .\
+  artifacts:
+    name: "MDFSetup-beta"
+    expire_in: 1 week
+    paths:
+    - .\*.exe
+  only:
+    - master
+
+stable-release:
+  extends:
+    - .shared_windows_runners
+  stage: package
+  script:
+    - $ver=cat output/last_version.txt
+    - choco install nsis -y
+    - $Env:Path += ";C:\Program Files (x86)\NSIS\"
+    - makensis.exe /INPUTCHARSET UTF8 /DPRODUCT_VERSION=$ver package\MDF.nsi
+    - mv package\*.exe .\
+  artifacts:
+    name: "MDFSetup-stable"
+    paths:
+    - .\*.exe
+  only:
+    - tags
+    
+pages:
+  stage: deploy
+  script:
+    - echo "pages"
+  needs:
+    - job: version-stable
+      artifacts: true
+    - job: stable-release
+      artifacts: false
+  artifacts:
+    paths:
+      - public
+  only:
+    - tags

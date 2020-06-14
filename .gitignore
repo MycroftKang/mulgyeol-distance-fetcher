@@ -1,3 +1,8 @@
+MDFSetup-stable.exe
+resources/
+/data
+/info
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -31,7 +36,6 @@ MANIFEST
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
-*.spec
 
 # Installer logs
 pip-log.txt
@@ -56,7 +60,6 @@ coverage.xml
 *.pot
 
 # Django stuff:
-*.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
@@ -127,3 +130,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+package/data/bin/data.db
