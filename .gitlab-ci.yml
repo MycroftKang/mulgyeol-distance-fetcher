@@ -95,7 +95,7 @@ stable-release:
   stage: package
   script:
     - $ver=cat output/last_version.txt
-    - mv resources\app\LICENSE LICENSE
+    - mv -Force resources\app\LICENSE LICENSE
     - choco install nsis -y
     - $Env:Path += ";C:\Program Files (x86)\NSIS\"
     - makensis.exe /INPUTCHARSET UTF8 /DPRODUCT_VERSION=$ver package\MDF.nsi
