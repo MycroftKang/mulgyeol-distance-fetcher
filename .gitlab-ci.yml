@@ -5,7 +5,7 @@ stages:
   - deploy
 
 .shared_windows_runners:
-  before-script:
+  before_script:
     - git clone $Env:GIT_URL
     - mv mdf-resources\resources resources
   tags:
