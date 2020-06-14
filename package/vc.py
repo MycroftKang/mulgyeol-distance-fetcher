@@ -10,6 +10,16 @@ def version(v):
 def isnewupdate(base, last):
     return base[:-1] != last[:-1]
 
+def signature(ver):
+    with open('src/version_info.txt', 'rt') as f:
+        text = f.read()
+
+    text.replace('<version:tuple>', '{},{},{},0'.format(*ver[:3]))
+    text.replace('<version:str>', '{}.{}.{}.{}'.format(*ver))
+
+    with open('src/version_info.txt', 'wt') as f:
+        f.write(text)
+
 def build():
     with open('package/info/version.json', 'rt') as f:
         cur = json.load(f)
@@ -23,6 +33,8 @@ def build():
     
     with open('package/info/version.json', 'wt') as f:
         json.dump(cur, f)
+
+    signature(cur['version'])
 
 def release():
     with open('package/info/version.json', 'rt') as f:
@@ -46,6 +58,8 @@ def release():
 
     with open('public/version.json', 'wt') as f:
         json.dump(pd, f)
+
+    signature(vd['version'])
 
 if '-b' in sys.argv:
     build()

@@ -51,6 +51,7 @@ version-beta:
     expire_in: 3h
     paths:
       - package/info/
+      - src/version_info.txt
       - output/
   only:
     - master
@@ -65,6 +66,7 @@ version-stable:
     paths:
       - public/
       - output/
+      - src/version_info.txt
       - package/info/
   only:
     - tags
