@@ -4,7 +4,7 @@ import os, sys
 import zipfile
 import win32api
 
-from product import PRODUCT_CONFIG
+from app.product import PRODUCT_CONFIG
 
 def version(v):
     ls = v.split(".")
@@ -13,7 +13,7 @@ def version(v):
 
 class Updater:
     def __init__(self):
-        with open('../info/version.json', 'rt') as f:
+        with open('../info/version.json', 'rt', encoding='UTF8') as f:
             self.info = json.load(f)
         
         self.cur = version(self.info['version'])
@@ -27,8 +27,8 @@ class Updater:
             self.last = version(data['last-version'])
             self.last_commit = data['commit']
             self.tags = data['tags']
-        except:
-            pass
+        except Exception as e:
+            print(e)
 
     def isnew(self):
         self.get_release_info()
@@ -38,7 +38,7 @@ class Updater:
         return self.info['update']["download"]
 
     def commit_info(self):
-        with open('../info/version.json', 'wt') as f:
+        with open('../info/version.json', 'wt', encoding='UTF8') as f:
             json.dump(self.info, f)
 
     def download(self):
@@ -50,6 +50,8 @@ class Updater:
         
         if PRODUCT_CONFIG['UPDATE_URL']:
             r = requests.get(PRODUCT_CONFIG['UPDATE_URL'].format(self.tags))
+
+            os.makedirs(os.path.dirname(self.download_file_name), exist_ok=True)
         
             with open(self.download_file_name, 'wb') as f:
                 f.write(r.content)

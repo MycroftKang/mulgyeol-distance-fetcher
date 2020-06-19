@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 import openpyxl as excel, urllib.parse, time, datetime, os
 from PyQt5 import QtCore
-import traceback, random, requests as req, json, logging, pickle
+import traceback, random, requests, json, logging, pickle
 
 class Mecro(QtCore.QObject):
     percentChanged = QtCore.pyqtSignal(int)
@@ -19,11 +19,10 @@ class Mecro(QtCore.QObject):
         self.file_handler = logging.FileHandler(log_address, mode='w')
         self.logger.addHandler(self.file_handler)
         self.logger.info('EXE INFO::' + str(datetime.datetime.now()))
-        self.session1 = req.Session()
-        self.session2 = req.Session()
-        self.base_url = 'https://m.map.naver.com/spirra/findCarRoute.nhn?route=route3&output=json&result=web3&coord_type=latlng&search=0&car=0&mileage=12.4'
+        self.option_to_naver_id = {0:0, 1:2}
+        self.option_to_kakao_id = {0:'SHORTEST_DIST', 1:'SHORTEST_REALTIME'}
 
-    def setValue(self, config, _file_address, _sheet_name, _column1, _column2, _startrow=2, _endrow=3):
+    def setValue(self, config, _file_address, _sheet_name, _column1, _column2, option ,_startrow=2, _endrow=3):
         self.startrow = _startrow
         self.endrow = _endrow
         self.operation = self.startrow
@@ -35,28 +34,28 @@ class Mecro(QtCore.QObject):
         self.sheet = self.wb[self.sheet_name]
         self.max_row = self.sheet.max_row
         self.percent = 0
+        self.option = option
         self.config_list = config
         if self.config_list[0] == 0:
-            http_header1 = {'accept':'application/json, text/javascript, */*; q=0.01',  'accept-encoding':'gzip, deflate, br',
+            self.destination = '화성고등학교정문'
+        else:
+            self.destination = '경기 화성시 향남읍 장짐길 4'
+
+    def request_to_naver(self, url):
+        http_header = {'accept':'application/json, text/javascript, */*; q=0.01',  'accept-encoding':'gzip, deflate, br',
              'accept-language':'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
              'referer':'https://m.map.naver.com/directions/',
              'sec-fetch-mode':'cors',
              'sec-fetch-site':'same-origin',
              'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36',
              'x-requested-with':'XMLHttpRequest'}
-            http_header2 = http_header1
-            self.destination = '화성고등학교정문'
-        else:
-            http_header1 = {'Accept':'*/*',
-             'Accept-Encoding':'gzip, deflate, br',
-             'Accept-Language':'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
-             'Connection':'keep-alive',
-             'Host':'search.map.daum.net',
-             'Referer':'https://map.kakao.com/',
-             'Sec-Fetch-Mode':'no-cors',
-             'Sec-Fetch-Site':'cross-site',
-             'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36'}
-            http_header2 = {'Accept':'text/javascript, application/javascript, application/ecmascript, application/x-ecmascript, */*; q=0.01',
+
+        r = requests.get(url, headers=http_header)
+        return r
+
+    def request_to_kakao(self, url, search=False):
+        if search:
+            http_header = {'Accept':'text/javascript, application/javascript, application/ecmascript, application/x-ecmascript, */*; q=0.01',
              'Accept-Encoding':'gzip, deflate, br',
              'Accept-Language':'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
              'Connection':'keep-alive',
@@ -66,9 +65,19 @@ class Mecro(QtCore.QObject):
              'Sec-Fetch-Site':'same-origin',
              'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36',
              'X-Requested-With':'XMLHttpRequest'}
-            self.destination = '경기 화성시 향남읍 장짐길 4'
-        self.session1.headers.update(http_header1)
-        self.session2.headers.update(http_header2)
+        else:
+            http_header = {'Accept':'*/*',
+             'Accept-Encoding':'gzip, deflate, br',
+             'Accept-Language':'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+             'Connection':'keep-alive',
+             'Host':'search.map.daum.net',
+             'Referer':'https://map.kakao.com/',
+             'Sec-Fetch-Mode':'no-cors',
+             'Sec-Fetch-Site':'cross-site',
+             'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36'}
+
+        r = requests.get(url, headers=http_header)
+        return r    
 
     def naver_get_point_url(self, query):
         query = urllib.parse.quote_plus(query)
@@ -78,11 +87,11 @@ class Mecro(QtCore.QObject):
     def naver_get_distance_url(self, start_point, end_point):
         start_point = urllib.parse.quote_plus(start_point)
         end_point = urllib.parse.quote_plus(end_point)
-        url = self.base_url + '&start={}&destination={}'.format(start_point, end_point)
+        url = 'https://m.map.naver.com/spirra/findCarRoute.nhn?route=route3&output=json&result=web3&coord_type=latlng&search={}&car=0&mileage=12.4&start={}&destination={}'.format(self.option_to_naver_id[self.option], start_point, end_point)
         return url
 
     def naver_get_point(self, query):
-        r = self.session1.get(self.naver_get_point_url(query))
+        r = self.request_to_naver(self.naver_get_point_url(query))
         r.raise_for_status()
         res = r.text
         res_dict = json.loads(res)
@@ -108,11 +117,11 @@ class Mecro(QtCore.QObject):
     def kakao_get_distance_url(self, start_point, start_id, end_point, end_id):
         start_point = urllib.parse.quote_plus(start_point)
         end_point = urllib.parse.quote_plus(end_point)
-        url = 'https://map.kakao.com/route/carset.json?roadside=ON&sp={},ADDRESS,{}&ep={},ADDRESS,{}&callback=jQuery181029877381355741384_1577093231121&carMode=SHORTEST_DIST&carOption=NONE'.format(start_point, start_point, end_point, end_id)
+        url = 'https://map.kakao.com/route/carset.json?roadside=ON&sp={},ADDRESS,{}&ep={},ADDRESS,{}&callback=jQuery181029877381355741384_1577093231121&carMode={}&carOption=NONE'.format(start_point, start_point, end_point, end_id, self.option_to_kakao_id(self.option))
         return url
 
     def kakao_get_point(self, query):
-        r = self.session1.get(self.kakao_get_point_url(query))
+        r = self.request_to_kakao(self.kakao_get_point_url(query), True)
         r.raise_for_status()
         res = r.text
         res = res[43:-3]
@@ -146,7 +155,7 @@ class Mecro(QtCore.QObject):
                 raise PermissionError
 
             try:
-                r = self.session2.get(self.naver_get_distance_url(start_point, end_point))
+                r = self.request_to_naver(self.naver_get_distance_url(start_point, end_point))
                 r.raise_for_status()
                 res = r.text
                 res_dict = json.loads(res)
@@ -171,7 +180,7 @@ class Mecro(QtCore.QObject):
                 raise PermissionError
 
             try:
-                r = self.session2.get(self.kakao_get_distance_url(start_point, start_id, end_point, end_id))
+                r = self.request_to_kakao(self.kakao_get_distance_url(start_point, start_id, end_point, end_id))
                 r.raise_for_status()
                 res = r.text
                 res = res[42:-1]
@@ -274,6 +283,4 @@ class Mecro(QtCore.QObject):
                 break
 
         self.logger.info('Thread가 종료되었습니다.')
-        self.session1.close()
-        self.session2.close()
         self.wb.close()

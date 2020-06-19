@@ -6,10 +6,11 @@ import sqlite3, json
 import time
 
 from update.UpdateDriver import UDriver
-from app.setting_window import setting_dialog
-from app.mapmecro import Mecro
+from app.setting import App_Setting
+from app.info import App_Info
+from app.process import App_Process
 
-from product import PRODUCT_CONFIG
+from app.product import PRODUCT_CONFIG
 
 class Main_Window(QtWidgets.QMainWindow):
     def __init__(self):
@@ -26,11 +27,11 @@ class Main_Window(QtWidgets.QMainWindow):
 
         con = sqlite3.connect('..\\data\\bin\\data.db')
         cur = con.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS RecentFile(address text, sheet text, start_row text, end_row text, input_column text, output_column text, time real);")
+        cur.execute("CREATE TABLE IF NOT EXISTS RecentFile(address text, sheet text, start_row text, end_row text, option integer, input_column text, output_column text, time real);")
         con.close()
 
         try:
-            con = sqlite3.connect('..\\data\\data.db')
+            con = sqlite3.connect('..\\data\\bin\\data.db')
             cur = con.cursor()
             cur.execute("SELECT * FROM RecentFile ORDER BY time DESC;")
             datalist = cur.fetchall()
@@ -135,6 +136,7 @@ class Main_Window(QtWidgets.QMainWindow):
         self.cbox1 = QtWidgets.QComboBox(self)
         self.cbox1.setFont(font1)
         self.cbox1.addItem('최단거리')
+        self.cbox1.addItem('추천경로')
         label7 = QtWidgets.QLabel('시작 행:')
         label7.setFont(font1)
         self.lineedit6 = QtWidgets.QLineEdit()
@@ -281,19 +283,20 @@ class Main_Window(QtWidgets.QMainWindow):
     def LoadRecentFile(self, data):
         self.lineedit1.setText(data[0])
         self.lineedit2.setText(data[1])
-        self.lineedit3.setText(data[4])
+        self.lineedit3.setText(data[5])
         self.lineedit4.setText(data[3])
-        self.lineedit5.setText(data[5])     
+        self.lineedit5.setText(data[6])     
         self.lineedit6.setText(data[2])
-        try:
-            wb = excel.load_workbook(data[0])
-            sheet_names = wb.sheetnames[:]
-            self.completer = QtWidgets.QCompleter(sheet_names)
-            self.completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
-            self.lineedit2.setCompleter(self.completer)
-            wb.close()
-        except:
-            pass
+        self.cbox1.setCurrentIndex(data[4])
+        # try:
+        wb = excel.load_workbook(data[0])
+        sheet_names = wb.sheetnames[:]
+        self.completer = QtWidgets.QCompleter(sheet_names)
+        self.completer.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.lineedit2.setCompleter(self.completer)
+        wb.close()
+        # except:
+        #     pass
 
     def savenrun(self):
         with open('..\\data\\bin\\config.bin', 'rb') as (f):
@@ -305,12 +308,12 @@ class Main_Window(QtWidgets.QMainWindow):
             self.end_row = int(self.lineedit4.text())
             self.output_column = self.lineedit5.text()
             self.start_row = int(self.lineedit6.text())
+            self.option = self.cbox1.currentIndex()
         except:
             QtWidgets.QMessageBox.warning(self, 'Warning', '입력 내용을 확인하십시오.', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
             return
-
         
-        data = [self.file_address, self.sheet_name, str(self.start_row), str(self.end_row), self.input_column, self.output_column]
+        data = [self.file_address, self.sheet_name, str(self.start_row), str(self.end_row), self.input_column, self.output_column, self.option]
         
         if '' in data:
             QtWidgets.QMessageBox.warning(self, 'Warning', '입력 내용을 확인하십시오.', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
@@ -318,20 +321,19 @@ class Main_Window(QtWidgets.QMainWindow):
 
         con = sqlite3.connect('..\\data\\bin\\data.db')
         cur = con.cursor()
-        cur.execute("CREATE TABLE IF NOT EXISTS RecentFile(address text, sheet text, start_row text, end_row text, input_column text, output_column text, time real);")
         cur.execute("SELECT * FROM RecentFile WHERE address=?;", (self.file_address, ))
         tdatalist = cur.fetchall()
 
         if not len(tdatalist) == 0:
-            cur.execute("UPDATE RecentFile SET sheet=?, start_row=?, end_row=?, input_column=?, output_column=?, time=? WHERE address=?;", (self.sheet_name, str(self.start_row), str(self.end_row), self.input_column, self.output_column, time.time(), self.file_address))
+            cur.execute("UPDATE RecentFile SET sheet=?, start_row=?, end_row=?, option=? ,input_column=?, output_column=?, time=? WHERE address=?;", (self.sheet_name, str(self.start_row), str(self.end_row), self.option, self.input_column, self.output_column, time.time(), self.file_address))
         else:
-            cur.execute("INSERT INTO RecentFile VALUES(?, ?, ?, ?, ?, ?, ?);", (self.file_address, self.sheet_name, str(self.start_row), str(self.end_row), self.input_column, self.output_column, time.time()))
+            cur.execute("INSERT INTO RecentFile VALUES(?, ?, ?, ?, ?, ?, ?, ?);", (self.file_address, self.sheet_name, str(self.start_row), str(self.end_row), self.option, self.input_column, self.output_column, time.time()))
         con.commit()
         con.close()
 
         self.renew_recentfile()
         try:
-            self.win_progress.setValue(self.file_address, self.sheet_name, self.input_column, self.output_column, self.start_row, self.end_row, self.stay_on_top_flag)
+            self.win_progress.setValue(self.file_address, self.sheet_name, self.input_column, self.output_column, self.option, self.start_row, self.end_row, self.stay_on_top_flag)
         except Exception as e:
             print('[Error]:', e)
             QtWidgets.QMessageBox.warning(self, 'Warning', '입력 내용을 확인하십시오.', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
@@ -399,324 +401,6 @@ class Main_Window(QtWidgets.QMainWindow):
             else:
                 UDriver.run_update()
         event.accept()
-
-class App_Setting(setting_dialog):
-    setting_signal = QtCore.pyqtSignal(int)
-
-    def __init__(self):
-        self.dialog = QtWidgets.QDialog()
-        super().setupUi(self.dialog)
-        self.dialog.setWindowIcon(QtGui.QIcon('..\\resources\\app\\MDF_Icon.png'))
-        with open('..\\data\\bin\\config.bin', 'rb') as (f):
-            self.config_list = pickle.load(f)
-        self.pushButton.clicked.connect(self.save_setting)
-        self.pushButton_2.clicked.connect(self.close)
-        self.setDefaultValue()
-
-    def setDefaultValue(self):
-        if self.config_list[0] == 0:
-            self.radioButton_naver.setChecked(True)
-        else:
-            self.radioButton_2_kakao.setChecked(True)
-        self.waittime_start.setValue(self.config_list[1])
-        self.waittime_end.setValue(self.config_list[2])
-        self.waittime_item.setValue(self.config_list[3])
-        self.waittime_item_sec.setValue(self.config_list[4])
-        if self.config_list[5] == 0:
-            self.radioButton_finish.setChecked(True)
-        else:
-            self.radioButton_wait_again.setChecked(True)
-        self.wait_again_min.setValue(self.config_list[6])
-
-    def save_setting(self):
-        if self.radioButton_naver.isChecked():
-            platform = 0
-        else:
-            platform = 1
-        if self.radioButton_finish.isChecked():
-            network = 0
-        else:
-            network = 1
-        renew_config_list = [platform, self.waittime_start.value(), self.waittime_end.value(), self.waittime_item.value(), self.waittime_item_sec.value(), network, self.wait_again_min.value()]
-        with open('..\\data\\bin\\config.bin', 'wb') as (f):
-            pickle.dump(renew_config_list, f)
-        self.setting_signal.emit(platform)
-        self.close()
-
-    def show(self, _stay_on_top):
-        if _stay_on_top:
-            self.dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowCloseButtonHint)
-        else:
-            self.dialog.setWindowFlags(QtCore.Qt.Window)
-        self.dialog.show()
-
-    def close(self):
-        self.dialog.close()
-
-
-class App_Info(QtWidgets.QDialog):
-    def __init__(self, _fixed_width):
-        super().__init__()
-        self.fixed_width = _fixed_width
-        self.initUI()
-
-    def initUI(self):
-        with open("..\\info\\version.json", 'rt') as f:
-            info = json.load(f)
-
-        
-        # self.commit_version = text[1].split('.')[3]+'.'+text[1].split('.')[4]
-
-        pixmap = QtGui.QPixmap('..\\resources\\app\\Mulgyeol Labs CI 3.0.png')
-        pixmap = pixmap.scaledToHeight(50)
-        lbl_img = QtWidgets.QLabel()
-        lbl_img.setPixmap(pixmap)
-        pixmap2 = QtGui.QPixmap('..\\resources\\app\\MDF_Icon.png')
-        pixmap2 = pixmap2.scaledToHeight(70)
-        lbl_img2 = QtWidgets.QLabel()
-        lbl_img2.setPixmap(pixmap2)
-        label1 = QtWidgets.QLabel(PRODUCT_CONFIG['PRODUCT_NAME'])
-        font = label1.font()
-        font.setPointSize(11)
-        font.setFamily('Segoe UI')
-        label1.setFont(font)
-        label3 = QtWidgets.QLabel('버전 {} <a href="https://github.com/MycroftKang/mulgyeol-distance-fetcher/releases">Release Note</a><br>커밋 {}'.format(info['version'], info['commit']))
-        label3.setOpenExternalLinks(True)
-        font2 = label3.font()
-        font2.setFamily('맑은 고딕')
-        font2.setPointSize(9)
-        label3.setFont(font2)
-        label2 = QtWidgets.QLabel('Copyright © 2020 Mulgyeol Labs. All Rights Reserved.')
-        label2.setFont(font2)
-        hbox1 = QtWidgets.QHBoxLayout()
-        hbox1.addWidget(lbl_img)
-        hbox1.addStretch(1)
-        hbox1.addWidget(lbl_img2)
-        vbox = QtWidgets.QVBoxLayout()
-        vbox.addSpacing(10)
-        vbox.addLayout(hbox1)
-        vbox.addSpacing(15)
-        vbox.addWidget(label1)
-        vbox.addWidget(label3)
-        vbox.addWidget(label2)
-        vbox.addSpacing(10)
-        hbox = QtWidgets.QHBoxLayout()
-        hbox.addSpacing(20)
-        hbox.addLayout(vbox)
-        hbox.addSpacing(20)
-        self.setLayout(hbox)
-        self.setStyleSheet('background-color: #fff')
-        self.setFixedSize(self.fixed_width, self.sizeHint().height())
-        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
-        self.setWindowIcon(QtGui.QIcon('..\\resources\\app\\MDF_Icon.png'))
-        self.setWindowTitle('소프트웨어 정보')
-
-    def show_window(self, _stay_on_top):
-        if _stay_on_top:
-            self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowCloseButtonHint)
-        else:
-            self.setWindowFlags(QtCore.Qt.Window)
-        self.show()
-
-
-class App_Process(QtWidgets.QMainWindow):
-    closesignal = QtCore.pyqtSignal(bool)
-
-    def __init__(self, _fixed_width):
-        super().__init__()
-        self.fixed_width = _fixed_width
-        self.worker = Worker()
-        self.thread = QtCore.QThread()
-        self.worker.moveToThread(self.thread)
-        self.thread.started.connect(self.worker.start_work)
-        self.worker.percent_signal.connect(self.info_system, QtCore.Qt.QueuedConnection)
-        self.worker.label_signal.connect(self.setLabel, QtCore.Qt.QueuedConnection)
-        self.worker.permission_Signal.connect(self.permission_error, QtCore.Qt.QueuedConnection)
-        self.worker.wait_signal.connect(self.wait_info, QtCore.Qt.QueuedConnection)
-        self.initUI()
-
-    def setValue(self, file_address, sheet_name, addr_column, distance_column, start_row, end_row, _stay_on_top):
-        if _stay_on_top:
-            self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowCloseButtonHint)
-        else:
-            self.setWindowFlags(QtCore.Qt.Window)
-        self.pbar.setRange(0, 0)
-        self.pbar.setValue(0)
-        self.emit_data = None
-        self.window_resize_fewer()
-        self.label1.setText('소프트웨어를 구성하고 있습니다.')
-        self.label2.setText('0% 완료')
-        self.label3.setText('출발 위치: 불러오는 중...')
-        self.label4.setText('남은 시간: 계산 중...')
-        self.label5.setText('남은 항목: 계산 중...')
-        self.btn1.setEnabled(False)
-        self.worker.setValue(file_address, sheet_name, addr_column, distance_column, start_row, end_row)
-        self.worker.fetcher.online = True
-        self.st = time.time()
-        self.thread.start()
-
-    def initUI(self):
-        widget = QtWidgets.QWidget()
-        self.setCentralWidget(widget)
-        self.pbar = QtWidgets.QProgressBar(self)
-        self.pbar.setTextVisible(False)
-        self.pbar.setRange(0, 0)
-        self.label1 = QtWidgets.QLabel('소프트웨어를 구성하고 있습니다.')
-        font1 = self.label1.font()
-        font1.setFamily('맑은 고딕')
-        font1.setPointSize(9)
-        self.label1.setFont(font1)
-        self.label2 = QtWidgets.QLabel('0% 완료')
-        font2 = self.label2.font()
-        font2.setFamily('맑은 고딕')
-        font2.setPointSize(15)
-        self.label2.setFont(font2)
-        self.label3 = QtWidgets.QLabel('출발 위치: 불러오는 중...')
-        self.label3.setFont(font1)
-        self.label4 = QtWidgets.QLabel('남은 시간: 계산 중...')
-        self.label4.setFont(font1)
-        self.label5 = QtWidgets.QLabel('남은 항목: 계산 중...')
-        self.label5.setFont(font1)
-        self.btn1 = QtWidgets.QPushButton('완료', self)
-        self.btn1.setFont(font1)
-        self.btn1.setStyleSheet('background-color: light gray')
-        self.btn1.clicked.connect(self.close)
-        self.btn2 = QtWidgets.QPushButton('자세히', self)
-        self.btn2.setFont(font1)
-        self.btn2.setStyleSheet('background-color: light gray')
-        self.btn2.clicked.connect(self.window_resize_more)
-        hbox = QtWidgets.QHBoxLayout()
-        hbox.addStretch(3)
-        hbox.addWidget(self.btn2)
-        hbox.addWidget(self.btn1)
-        vbox = QtWidgets.QVBoxLayout()
-        vbox.addSpacing(5)
-        vbox.addWidget(self.label1)
-        vbox.addSpacing(-6)
-        vbox.addWidget(self.label2)
-        vbox.addSpacing(10)
-        vbox.addWidget(self.pbar)
-        vbox.addSpacing(10)
-        vbox.addWidget(self.label3)
-        vbox.addWidget(self.label4)
-        vbox.addWidget(self.label5)
-        self.label3.hide()
-        self.label4.hide()
-        self.label5.hide()
-        vbox.addLayout(hbox)
-        vbox.addSpacing(5)
-        hbox2 = QtWidgets.QHBoxLayout()
-        hbox2.addSpacing(20)
-        hbox2.addLayout(vbox)
-        hbox2.addSpacing(20)
-        widget.setLayout(hbox2)
-        self.setStyleSheet('background-color: #fff')
-        self.setFixedSize(self.fixed_width, self.sizeHint().height())
-        self.init_window_size = self.size()
-        self.setWindowIcon(QtGui.QIcon('..\\resources\\app\\MDF_Icon.png'))
-        self.setWindowTitle(PRODUCT_CONFIG['PRODUCT_NAME'])
-
-    def window_resize_more(self):
-        self.btn2.setText('간단히')
-        self.btn2.disconnect()
-        self.btn2.clicked.connect(self.window_resize_fewer)
-        self.label3.show()
-        self.label4.show()
-        self.label5.show()
-        self.setFixedSize(self.fixed_width, self.sizeHint().height())
-
-    def window_resize_fewer(self):
-        self.btn2.setText('자세히')
-        self.btn2.disconnect()
-        self.btn2.clicked.connect(self.window_resize_more)
-        self.setFixedSize(self.init_window_size)
-        self.label3.hide()
-        self.label4.hide()
-        self.label5.hide()
-
-    def setLabel(self, data):
-        self.emit_data = data
-        self.label4_last_time = datetime.timedelta(seconds=(round(data[3])))
-        self.label1.setText(str(data[0]) + '개 항목에서 <a style="color:#0078D7;">화성고등학교</a>까지의 거리 정보 수집 중')
-        self.label3.setText('수집 항목: ' + str(data[1]) + ' (' + str(data[2]) + 'km)')
-        self.label4.setText('남은 시간: 약 ' + str(self.label4_last_time) + ' 남음')
-        self.label5.setText('남은 항목: ' + str(data[4]) + '개')
-        if data[0] == data[5]:
-            self.label1.setText(str(self.emit_data[0]) + '개 항목에서 <a style="color:#0078D7;">화성고등학교</a>까지의  거리 정보 수집이 완료되었습니다.')
-            self.label4.setText('소요 시간: ' + str(datetime.timedelta(seconds=(round(self.et - self.st)))) + ' 소요됨')
-
-    def info_system(self, percent):
-        if percent == 0:
-            self.pbar.setRange(0, 100)
-        self.pbar.setValue(percent)
-        self.label2.setText(str(percent) + '% 완료')
-        if percent == 100:
-            self.btn1.setEnabled(True)
-            self.et = time.time()
-            self.thread.terminate()
-            print('Thread 종료가 감지되었습니다.')
-
-    def wait_info(self, time):
-        self.label1.setText('네트워크 오류(Abusing 감지)가 발생하여 ' + str(time) + '분 후 다시 시도합니다.')
-        self.label3.setText('수집 항목: 대기 중...')
-        try:
-            self.label4.setText('남은 시간: ' + str(self.label4_last_time + datetime.timedelta(minutes=time)) + ' 남음')
-        except:
-            pass
-
-    def permission_error(self, check=0):
-        if check == 1:
-            QtWidgets.QMessageBox.warning(self, 'Warning', '네트워크 오류(Abusing 감지)가 발생했습니다.\n잠시 후 다시 시도하십시오.')
-            self.close()
-        elif check == 2:
-            QtWidgets.QMessageBox.warning(self, 'Warning', 'Excel 파일을 닫고, 다시 시도하십시오.')
-            self.close()
-
-    def closeEvent(self, event):
-        self.worker.fetcher.online = False
-        self.thread.terminate()
-        self.closesignal.emit(True)
-        event.accept()
-        print('Thread 종료가 확인되었습니다.')
-
-
-class Worker(QtCore.QObject):
-    percent_signal = QtCore.pyqtSignal(int)
-    label_signal = QtCore.pyqtSignal(list)
-    permission_Signal = QtCore.pyqtSignal(int)
-    end_signal = QtCore.pyqtSignal()
-    wait_signal = QtCore.pyqtSignal(int)
-
-    def __init__(self):
-        super().__init__()
-        self.fetcher = Mecro('..\\data\\log\\MDF.log')
-        self.fetcher.percentChanged.connect(self.get_percent_signal, QtCore.Qt.QueuedConnection)
-        self.fetcher.completion.connect(self.label_signal.emit, QtCore.Qt.QueuedConnection)
-        self.fetcher.permission.connect(self.permission_Signal.emit, QtCore.Qt.QueuedConnection)
-        self.fetcher.waitsignal.connect(self.wait_signal.emit, QtCore.Qt.QueuedConnection)
-
-    def setValue(self, file_address, sheet_name, addr_column, distance_column, start_row, end_row):
-        self.file_address = file_address
-        self.sheet_name = sheet_name
-        self.addr_column = addr_column
-        self.distance_column = distance_column
-        self.start_row = start_row
-        self.end_row = end_row
-
-    def start_work(self):
-        with open('..\\data\\bin\\config.bin', 'rb') as (f):
-            config_list = pickle.load(f)
-        self.fetcher.setValue(config_list, self.file_address, self.sheet_name, self.addr_column, self.distance_column, self.start_row, self.end_row)
-        print('pass')
-        self.fetcher.fetch()
-
-    def get_percent_signal(self, percent):
-        self.percent_signal.emit(percent)
-
-    def driver_update(self):
-        self.fetcher.update_driver()
-        self.driver_update_signal.emit(2)
-
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

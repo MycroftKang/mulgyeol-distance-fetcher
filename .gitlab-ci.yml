@@ -8,6 +8,7 @@ stages:
   before_script:
     - git clone $Env:GIT_URL
     - mv mdf-resources\resources resources
+    - mv mdf-resources\product.json product.json
   tags:
     - shared-windows
     - windows
@@ -77,7 +78,6 @@ pre-release:
   stage: package
   script:
     - $ver=cat output/last_version.txt
-    - echo $Env:PRODUCT > product.json
     - choco install nsis -y
     - $Env:Path += ";C:\Program Files (x86)\NSIS\"
     - makensis.exe /INPUTCHARSET UTF8 /DPRODUCT_VERSION=$ver "/DPRODUCT_NAME=Mulgyeol Distance Fetcher" "/DEXE_NAME=MDF.exe" package\MDF.nsi
@@ -96,7 +96,6 @@ stable-release:
   stage: package
   script:
     - $ver=cat output/last_version.txt
-    - echo $Env:PRODUCT > product.json
     - mv -Force resources\app\LICENSE LICENSE
     - choco install nsis -y
     - $Env:Path += ";C:\Program Files (x86)\NSIS\"
