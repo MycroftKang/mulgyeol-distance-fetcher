@@ -1,6 +1,7 @@
 {
     "name":"Mulgyeol Distance Fetcher Education",
-    "version":"3.3.0",
+    "version":"3.3.0.beta",
+    "commit":null,
     "update":{
         "isnew":false,
         "download":false

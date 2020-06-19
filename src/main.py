@@ -5,13 +5,16 @@ import time, datetime, openpyxl as excel
 import sqlite3, json
 import time
 
-from app.UpdateDriver import UDriver
+from update.UpdateDriver import UDriver
 from app.setting_window import setting_dialog
 from app.mapmecro import Mecro
+
+from product import PRODUCT_CONFIG
 
 class Main_Window(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
+        self.auto_run = False
         self.initUI()
 
     def initUI(self):
@@ -209,7 +212,7 @@ class Main_Window(QtWidgets.QMainWindow):
         self.setting_win.setting_signal.connect(self.set_lineedit7_text)
         self.win_progress.closesignal.connect(self.show_window, QtCore.Qt.QueuedConnection)
         self.setWindowIcon(QtGui.QIcon('..\\resources\\app\\MDF_Icon.png'))
-        self.setWindowTitle('Mulgyeol Distance Fetcher')
+        self.setWindowTitle(PRODUCT_CONFIG['PRODUCT_NAME'])
         self.show()
 
     def stay_on_top(self, state):
@@ -246,15 +249,15 @@ class Main_Window(QtWidgets.QMainWindow):
 
     def update_notice(self):
         if UDriver.isready():
+            self.auto_run = True
             self.close()
-            sys.exit(0)
         else:
             QtWidgets.QMessageBox.information(self, 'Mulgyeol Software Update', '현재 사용할 수 있는 업데이트가 없습니다.', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
 
     def renew_update(self):
         if UDriver.isnew():
             if UDriver.isready():
-                self.updateAction.setText('MDF(을)를 다시 시작하여 업데이트 적용')
+                self.updateAction.setText('다시 시작 및 업데이트')
                 self.updateAction.setEnabled(True)
             else:
                 self.updateAction.setText('업데이트 다운로드 중...')
@@ -391,7 +394,10 @@ class Main_Window(QtWidgets.QMainWindow):
 
     def closeEvent(self, event):
         if UDriver.isready():
-            UDriver.run_update()
+            if self.auto_run:
+                UDriver.run_update_with_autorun()
+            else:
+                UDriver.run_update()
         event.accept()
 
 class App_Setting(setting_dialog):
@@ -469,18 +475,18 @@ class App_Info(QtWidgets.QDialog):
         pixmap2 = pixmap2.scaledToHeight(70)
         lbl_img2 = QtWidgets.QLabel()
         lbl_img2.setPixmap(pixmap2)
-        label1 = QtWidgets.QLabel('Mulgyeol Distance Fetcher Education')
+        label1 = QtWidgets.QLabel(PRODUCT_CONFIG['PRODUCT_NAME'])
         font = label1.font()
         font.setPointSize(11)
         font.setFamily('Segoe UI')
         label1.setFont(font)
-        label3 = QtWidgets.QLabel('[교육기관용] '+ info['version'] +' <a href="https://github.com/MycroftKang/mulgyeol-distance-fetcher/releases">Release Note</a>')
+        label3 = QtWidgets.QLabel('버전 {} <a href="https://github.com/MycroftKang/mulgyeol-distance-fetcher/releases">Release Note</a><br>커밋 {}'.format(info['version'], info['commit']))
         label3.setOpenExternalLinks(True)
         font2 = label3.font()
         font2.setFamily('맑은 고딕')
         font2.setPointSize(9)
         label3.setFont(font2)
-        label2 = QtWidgets.QLabel('이 소프트웨어에 대한 저작권은 강태혁에게 있습니다.\nCopyright © 2020 Mulgyeol Labs. All Rights Reserved.')
+        label2 = QtWidgets.QLabel('Copyright © 2020 Mulgyeol Labs. All Rights Reserved.')
         label2.setFont(font2)
         hbox1 = QtWidgets.QHBoxLayout()
         hbox1.addWidget(lbl_img)
@@ -608,7 +614,7 @@ class App_Process(QtWidgets.QMainWindow):
         self.setFixedSize(self.fixed_width, self.sizeHint().height())
         self.init_window_size = self.size()
         self.setWindowIcon(QtGui.QIcon('..\\resources\\app\\MDF_Icon.png'))
-        self.setWindowTitle('Mulgyeol Distance Fetcher')
+        self.setWindowTitle(PRODUCT_CONFIG['PRODUCT_NAME'])
 
     def window_resize_more(self):
         self.btn2.setText('간단히')
@@ -698,7 +704,7 @@ class Worker(QtCore.QObject):
         self.end_row = end_row
 
     def start_work(self):
-        with open(os.getenv('LOCALAPPDATA') + '\\Mulgyeol\\Mulgyeol Distance Fetcher\\User Data\\bin\\config.bin', 'rb') as (f):
+        with open('..\\data\\bin\\config.bin', 'rb') as (f):
             config_list = pickle.load(f)
         self.fetcher.setValue(config_list, self.file_address, self.sheet_name, self.addr_column, self.distance_column, self.start_row, self.end_row)
         print('pass')

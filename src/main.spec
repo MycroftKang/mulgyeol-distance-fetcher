@@ -1,7 +1,10 @@
 # -*- mode: python ; coding: utf-8 -*-
 import os
+import json
 block_cipher = None
 
+with open('..\\product.json', 'rt') as f:
+    PRODUCT_CONFIG = json.load(f)
 
 a = Analysis(['main.py'],
              pathex=[os.curdir],
@@ -21,7 +24,7 @@ exe = EXE(pyz,
           a.scripts,
           [],
           exclude_binaries=True,
-          name='MDF',
+          name=PRODUCT_CONFIG['EXE_NAME'],
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,

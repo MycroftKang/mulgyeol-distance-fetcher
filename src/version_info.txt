@@ -10,13 +10,13 @@ VSVersionInfo(
         date=(0, 0)),
         kids=[StringFileInfo([StringTable(
         u'040904B0',
-        [StringStruct(u'FileDescription', u'Mulgyeol Distance Fetcher Education'),
+        [StringStruct(u'FileDescription', u'<name:str>'),
         StringStruct(u'FileVersion', u'<version:str>'),
-        StringStruct(u'InternalName', u'MDFE'),
+        StringStruct(u'InternalName', u'MDF'),
         StringStruct(u'LegalCopyright', u'Copyright (C) 2020 Mulgyeol Labs. All rights reserved.'),
-        StringStruct(u'OriginalFilename', u'Mulgyeol Distance Fetcher'),
-        StringStruct(u'ProductName', u'Mulgyeol Distance Fetcher'),
+        StringStruct(u'OriginalFilename', u'<name:str>'),
+        StringStruct(u'ProductName', u'<name:str>'),
         StringStruct(u'ProductVersion', u'<version:str>'),
-        StringStruct(u'LegalTrademarks', u'Mulgyeol Distance Fetcher')])]), 
+        StringStruct(u'LegalTrademarks', u'<name:str>')])]), 
         VarFileInfo([VarStruct(u'Translation', [1033, 1200])])]
     )

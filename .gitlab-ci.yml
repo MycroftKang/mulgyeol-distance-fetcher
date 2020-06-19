@@ -77,9 +77,10 @@ pre-release:
   stage: package
   script:
     - $ver=cat output/last_version.txt
+    - echo $Env:PRODUCT > product.json
     - choco install nsis -y
     - $Env:Path += ";C:\Program Files (x86)\NSIS\"
-    - makensis.exe /INPUTCHARSET UTF8 /DPRODUCT_VERSION=$ver package\MDF.nsi
+    - makensis.exe /INPUTCHARSET UTF8 /DPRODUCT_VERSION=$ver "/DPRODUCT_NAME=Mulgyeol Distance Fetcher" "/DEXE_NAME=MDF.exe" package\MDF.nsi
     - mv package\*.exe .\
   artifacts:
     name: "MDFSetup-beta"
@@ -95,10 +96,11 @@ stable-release:
   stage: package
   script:
     - $ver=cat output/last_version.txt
+    - echo $Env:PRODUCT > product.json
     - mv -Force resources\app\LICENSE LICENSE
     - choco install nsis -y
     - $Env:Path += ";C:\Program Files (x86)\NSIS\"
-    - makensis.exe /INPUTCHARSET UTF8 /DPRODUCT_VERSION=$ver package\MDF.nsi
+    - makensis.exe /INPUTCHARSET UTF8 /DPRODUCT_VERSION=$ver "/DPRODUCT_NAME=Mulgyeol Distance Fetcher" "/DEXE_NAME=MDF.exe" package\MDF.nsi
     - mv package\*.exe .\
   artifacts:
     name: "MDFSetup-stable"

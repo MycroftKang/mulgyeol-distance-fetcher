@@ -7,20 +7,23 @@ def isfile(filename):
 def version(v):
     ls = v.split(".")
     re = list(map(int, (ls[:3])))
-    re.append(ls[3])
     return re
 
 def isnewupdate(base, last):
     return base[:-1] != last[:-1]
 
 def signature(ver):
+    with open('product.json', 'rt') as f:
+        PRODUCT_CONFIG = json.load(f)
+
     ver = version(ver)
 
     with open('src/version_info.txt', 'rt') as f:
         text = f.read()
 
     text = text.replace('<version:tuple>', '{},{},{},0'.format(*ver[:3]))
-    text = text.replace('<version:str>', '{}.{}.{}.{}'.format(*ver))
+    text = text.replace('<version:str>', '{}.{}.{}'.format(*ver))
+    text = text.replace('<name:str>', PRODUCT_CONFIG['PRODUCT_NAME'])
 
     with open('src/version_info.txt', 'wt') as f:
         f.write(text)
@@ -29,7 +32,8 @@ def build():
     with open('package/info/version.json', 'rt') as f:
         cur = json.load(f)
 
-    cur['version'] += '.{}'.format(os.getenv('CI_COMMIT_SHORT_SHA'))
+    cur['version'] = cur['version'].replace('.beta', '')
+    cur['commit'] = os.getenv('CI_COMMIT_SHORT_SHA')
 
     os.makedirs('output', exist_ok=True)
 
@@ -41,6 +45,12 @@ def build():
 
     signature(cur['version'])
 
+def local_build():
+    with open('package/info/version.json', 'rt') as f:
+        cur = json.load(f)
+    
+    signature(cur['version'])
+
 def release():
     with open('package/info/version.json', 'rt') as f:
         vd = json.load(f)
@@ -48,9 +58,11 @@ def release():
     with open('public/version.json', 'rt') as f:
         pd = json.load(f)
 
-    vd['version'] += '.{}'.format(os.getenv('CI_COMMIT_SHORT_SHA'))
+    vd['version'] = vd['version'].replace('.beta', '')
+    vd['commit'] = os.getenv('CI_COMMIT_SHORT_SHA')
 
     pd['last-version'] = vd['version']
+    pd['commit'] = os.getenv('CI_COMMIT_SHORT_SHA')
     pd['tags'] = os.getenv('CI_COMMIT_TAG')
 
     os.makedirs('output', exist_ok=True)
@@ -70,3 +82,5 @@ if '-b' in sys.argv:
     build()
 elif '-r' in sys.argv:
     release()
+elif '-lb':
+    local_build()

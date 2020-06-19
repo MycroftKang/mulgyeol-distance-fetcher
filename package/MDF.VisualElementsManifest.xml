@@ -1,8 +1,9 @@
 <Application xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 		<VisualElements
-				BackgroundColor="#2D2D30"
+				DisplayName="MDF"
+				BackgroundColor="#F2FDFF"
 				ShowNameOnSquare150x150Logo="on"
 				Square150x150Logo="visual\mdf_150x150.png"
 				Square70x70Logo="visual\mdf_70x70.png"
-				ForegroundText="light" />
+				ForegroundText="dark" />
 </Application>

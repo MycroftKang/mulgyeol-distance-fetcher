@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "cwd": "${fileDirname}",
-            "pythonPath": "${config:python.interpreterPath}"
+            "pythonPath": "${command:python.interpreterPath}"
         }
     ]
 }

@@ -3,8 +3,8 @@ import os
 block_cipher = None
 
 
-a = Analysis(['update\\msu.py'],
-             pathex=[os.curdir+'\\update'],
+a = Analysis(['msu.py'],
+             pathex=[os.curdir],
              binaries=[],
              datas=[],
              hiddenimports=[],
