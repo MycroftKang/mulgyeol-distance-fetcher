@@ -81,7 +81,7 @@ pre-release:
     - choco install nsis -y
     - $Env:Path += ";C:\Program Files (x86)\NSIS\"
     - makensis.exe /INPUTCHARSET UTF8 /DPRODUCT_VERSION=$ver "/DPRODUCT_NAME=Mulgyeol Distance Fetcher" "/DEXE_NAME=MDF.exe" package\MDF.nsi
-    - mv package\*.exe .\
+    - mv package\MDFSetup-stable.exe .\
   artifacts:
     name: "MDFSetup-beta"
     expire_in: 1 week
@@ -101,7 +101,7 @@ stable-release:
     - choco install nsis -y
     - $Env:Path += ";C:\Program Files (x86)\NSIS\"
     - makensis.exe /INPUTCHARSET UTF8 /DPRODUCT_VERSION=$ver "/DPRODUCT_NAME=Mulgyeol Distance Fetcher" "/DEXE_NAME=MDF.exe" package\MDF.nsi
-    - mv package\*.exe .\
+    - mv package\MDFSetup-stable.exe .\
   artifacts:
     name: "MDFSetup-stable"
     paths:
