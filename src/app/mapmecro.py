@@ -22,7 +22,7 @@ class Mecro(QtCore.QObject):
         self.option_to_naver_id = {0:0, 1:2}
         self.option_to_kakao_id = {0:'SHORTEST_DIST', 1:'SHORTEST_REALTIME'}
 
-    def setValue(self, config, _file_address, _sheet_name, _column1, _column2, option ,_startrow=2, _endrow=3):
+    def setValue(self, config, _file_address, target, _sheet_name, _column1, _column2, option ,_startrow, _endrow):
         self.startrow = _startrow
         self.endrow = _endrow
         self.operation = self.startrow
@@ -36,10 +36,7 @@ class Mecro(QtCore.QObject):
         self.percent = 0
         self.option = option
         self.config_list = config
-        if self.config_list[0] == 0:
-            self.destination = '화성고등학교정문'
-        else:
-            self.destination = '경기 화성시 향남읍 장짐길 4'
+        self.destination = target
 
     def request_to_naver(self, url):
         http_header = {'accept':'application/json, text/javascript, */*; q=0.01',  'accept-encoding':'gzip, deflate, br',
@@ -90,11 +87,10 @@ class Mecro(QtCore.QObject):
         url = 'https://m.map.naver.com/spirra/findCarRoute.nhn?route=route3&output=json&result=web3&coord_type=latlng&search={}&car=0&mileage=12.4&start={}&destination={}'.format(self.option_to_naver_id[self.option], start_point, end_point)
         return url
 
-    def naver_get_point(self, query):
+    def naver_get_point(self, query, return_name=False):
         r = self.request_to_naver(self.naver_get_point_url(query))
         r.raise_for_status()
-        res = r.text
-        res_dict = json.loads(res)
+        res_dict = r.json()
         try:
             x = res_dict['result']['address']['list'][0]['x']
             y = res_dict['result']['address']['list'][0]['y']
@@ -104,10 +100,12 @@ class Mecro(QtCore.QObject):
             y = res_dict['result']['site']['list'][0]['y']
             name = res_dict['result']['site']['list'][0]['name']
         except:
-            self.logger.error(('[Code P] 400 Bad Request or 404 Not Found'+query+'\n'+ res), exc_info=True)
+            self.logger.error(('[Code P] 400 Bad Request or 404 Not Found'+query+'\n'+ r.text), exc_info=True)
             raise ValueError
-
-        return '{},{},{}'.format(x, y, name)
+        if return_name:
+            return '{},{},{}'.format(x, y, name), name
+        else:
+            return '{},{},{}'.format(x, y, name)
 
     def kakao_get_point_url(self, query):
         query = urllib.parse.quote_plus(query)
@@ -120,7 +118,7 @@ class Mecro(QtCore.QObject):
         url = 'https://map.kakao.com/route/carset.json?roadside=ON&sp={},ADDRESS,{}&ep={},ADDRESS,{}&callback=jQuery181029877381355741384_1577093231121&carMode={}&carOption=NONE'.format(start_point, start_point, end_point, end_id, self.option_to_kakao_id(self.option))
         return url
 
-    def kakao_get_point(self, query):
+    def kakao_get_point(self, query, return_name=False):
         r = self.request_to_kakao(self.kakao_get_point_url(query), True)
         r.raise_for_status()
         res = r.text
@@ -134,9 +132,11 @@ class Mecro(QtCore.QObject):
         except:
             self.logger.error(('[Code P] 400 Bad Request or 404 Not Found\n' + res), exc_info=True)
             raise ValueError
-
-        return (
-         '{},{},{}'.format(x, y, name), docid)
+        
+        if return_name:
+            return ('{},{},{}'.format(x, y, name), docid, name)
+        else:
+            return ('{},{},{}'.format(x, y, name), docid)
 
     def distance_query(self, query, platform):
         error = False
@@ -148,8 +148,7 @@ class Mecro(QtCore.QObject):
                 self.logger.warning(('[Code Q1] Input Address not Exist::' + query), exc_info=True)
                 distance = 0
                 error = True
-                return (
-                 error, distance)
+                return (error, distance)
             except:
                 self.logger.error('[Code Q1] 400 Bad Request\n'+query, exc_info=True)
                 raise PermissionError
@@ -215,10 +214,14 @@ class Mecro(QtCore.QObject):
     def fetch(self):
         self.total = self.endrow - self.startrow + 1
         last_percent = 0
-        if self.config_list[0] == 0:
-            self.destination_point = self.naver_get_point(self.destination)
-        else:
-            self.destination_point, self.destination_id = self.kakao_get_point(self.destination)
+        try:
+            if self.config_list[0] == 0:
+                self.destination_point, name = self.naver_get_point(self.destination, True)
+            else:
+                self.destination_point, self.destination_id, name = self.kakao_get_point(self.destination, True)
+        except ValueError:
+            self.permission.emit(3)
+            return
         for i in range(self.total):
             if self.online:
                 distance = 0
@@ -268,7 +271,7 @@ class Mecro(QtCore.QObject):
                     run_time = et - st
                     last_item = self.total - self.cur
                     last_time = (run_time + (self.config_list[1] + self.config_list[2]) / 2) * last_item + last_item // self.config_list[3] * self.config_list[4] * 60
-                    emit_data = [self.total, starting_point, distance / 1000, last_time, last_item, self.cur]
+                    emit_data = [self.total, starting_point, distance / 1000, last_time, last_item, self.cur, name]
                     if last_percent == 0:
                         self.completion.emit(emit_data)
                     for i in range(last_percent, int(self.percent) + 1):

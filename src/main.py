@@ -16,6 +16,8 @@ class Main_Window(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         self.auto_run = False
+        with open('..\\data\\settings\\settings.json', 'rt', encoding='utf-8') as f:
+            self.json_settings = json.load(f)
         self.initUI()
 
     def initUI(self):
@@ -54,8 +56,14 @@ class Main_Window(QtWidgets.QMainWindow):
         removerecentAct.triggered.connect(self.remove_recentfile)
         self.loadrencentMenu.addSeparator()
         self.loadrencentMenu.addAction(removerecentAct)
-        configAction = QtWidgets.QAction('설정', self)
+
+        self.settingsMenu = QtWidgets.QMenu('설정', self)
+        configAction = QtWidgets.QAction('기본 설정', self)
         configAction.triggered.connect(self.showApp_Setting)
+        devconfigAction = QtWidgets.QAction('구성 변경', self)
+        devconfigAction.triggered.connect(self.show_json)
+        self.settingsMenu.addAction(configAction)
+        self.settingsMenu.addAction(devconfigAction)
         exitAction = QtWidgets.QAction('끝내기', self)
         exitAction.triggered.connect(QtWidgets.qApp.quit)
         stayontopAction = QtWidgets.QAction('항상 위에 유지', self, checkable=True)
@@ -85,7 +93,8 @@ class Main_Window(QtWidgets.QMainWindow):
         filemenu.addSeparator()
         filemenu.addMenu(self.loadrencentMenu)
         filemenu.addSeparator()
-        filemenu.addAction(configAction)
+        # filemenu.addAction(configAction)
+        filemenu.addMenu(self.settingsMenu)
         filemenu.addSeparator()
         filemenu.addAction(exitAction)
         viewmenu = menubar.addMenu('보기')
@@ -217,6 +226,9 @@ class Main_Window(QtWidgets.QMainWindow):
         self.setWindowTitle(PRODUCT_CONFIG['PRODUCT_NAME'])
         self.show()
 
+    def show_json(self):
+        win32api.ShellExecute(0, 'open', '..\\data\\settings\\settings.json', None, ".", 1)
+
     def stay_on_top(self, state):
         if state:
             self.stay_on_top_flag = True
@@ -246,6 +258,7 @@ class Main_Window(QtWidgets.QMainWindow):
         if UDriver.isready():
             reply = QtWidgets.QMessageBox.question(self, 'Mulgyeol Software Update', '최신버전의 소프트웨어 업데이트를 사용할 수  있습니다.\n업데이트를 시작하시겠습니까?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.Yes)
             if reply == QtWidgets.QMessageBox.Yes:
+                self.auto_run = True
                 self.close()
                 sys.exit(0)
 
@@ -303,6 +316,7 @@ class Main_Window(QtWidgets.QMainWindow):
             self.config_list = pickle.load(f)
         try:
             self.file_address = self.lineedit1.text()
+            self.target = self.lineedit7.text()
             self.sheet_name = self.lineedit2.text()
             self.input_column = self.lineedit3.text()
             self.end_row = int(self.lineedit4.text())
@@ -313,7 +327,7 @@ class Main_Window(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.warning(self, 'Warning', '입력 내용을 확인하십시오.', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
             return
         
-        data = [self.file_address, self.sheet_name, str(self.start_row), str(self.end_row), self.input_column, self.output_column, self.option]
+        data = [self.file_address, self.target, self.sheet_name, str(self.start_row), str(self.end_row), self.input_column, self.output_column, self.option]
         
         if '' in data:
             QtWidgets.QMessageBox.warning(self, 'Warning', '입력 내용을 확인하십시오.', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
@@ -333,7 +347,7 @@ class Main_Window(QtWidgets.QMainWindow):
 
         self.renew_recentfile()
         try:
-            self.win_progress.setValue(self.file_address, self.sheet_name, self.input_column, self.output_column, self.option, self.start_row, self.end_row, self.stay_on_top_flag)
+            self.win_progress.setValue(self.file_address, self.target ,self.sheet_name, self.input_column, self.output_column, self.option, self.start_row, self.end_row, self.stay_on_top_flag)
         except Exception as e:
             print('[Error]:', e)
             QtWidgets.QMessageBox.warning(self, 'Warning', '입력 내용을 확인하십시오.', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
@@ -343,17 +357,18 @@ class Main_Window(QtWidgets.QMainWindow):
         self.win_progress.show()
 
     def show_OSL(self):
-        win32api.ShellExecute(0, 'open', 'https://drive.google.com/open?id=1l7m0jminM4ru3k2E1DSFNJv_yFONgrhq', None, None, 1)
+        win32api.ShellExecute(0, 'open', 'https://mgylabs.gitlab.io/mulgyeol-distance-fetcher/OpenSourceLicense.txt', None, None, 1)
 
     def show_SL(self):
-        win32api.ShellExecute(0, 'open', 'https://drive.google.com/open?id=1P3V6Hk3vuM__AIRlCqqco4kKw2HSWuvU', None, None, 1)
+        win32api.ShellExecute(0, 'open', 'https://mgylabs.gitlab.io/mulgyeol-distance-fetcher/LICENSE', None, None, 1)
 
     def set_lineedit7_text(self, platform):
-        if platform == 0:
-            self.lineedit7.setText('화성고등학교정문')
-        else:
-            self.lineedit7.setText('경기 화성시 향남읍 장짐길 4')
-
+        if self.json_settings['defalut']['enabled']:
+            p_to_id = {0:"naver", 1:"kakao"}
+            self.lineedit7.setText(self.json_settings['defalut'][p_to_id[platform]]['arrivallocation'])
+            self.lineedit7.setReadOnly(self.json_settings['defalut'][p_to_id[platform]]['readonly'])
+            self.cbox1.setCurrentIndex(self.json_settings['defalut'][p_to_id[platform]]['option'])
+            
     def show_window(self, condition=False):
         if condition:
             self.show()

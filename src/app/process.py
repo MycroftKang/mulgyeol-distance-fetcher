@@ -20,7 +20,7 @@ class App_Process(QtWidgets.QMainWindow):
         self.worker.wait_signal.connect(self.wait_info, QtCore.Qt.QueuedConnection)
         self.initUI()
 
-    def setValue(self, file_address, sheet_name, addr_column, distance_column, option, start_row, end_row, _stay_on_top):
+    def setValue(self, file_address, target, sheet_name, addr_column, distance_column, option, start_row, end_row, _stay_on_top):
         if _stay_on_top:
             self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowCloseButtonHint)
         else:
@@ -35,7 +35,7 @@ class App_Process(QtWidgets.QMainWindow):
         self.label4.setText('남은 시간: 계산 중...')
         self.label5.setText('남은 항목: 계산 중...')
         self.btn1.setEnabled(False)
-        self.worker.setValue(file_address, sheet_name, addr_column, distance_column, option, start_row, end_row)
+        self.worker.setValue(file_address, target, sheet_name, addr_column, distance_column, option, start_row, end_row)
         self.worker.fetcher.online = True
         self.st = time.time()
         self.thread.start()
@@ -122,12 +122,12 @@ class App_Process(QtWidgets.QMainWindow):
     def setLabel(self, data):
         self.emit_data = data
         self.label4_last_time = datetime.timedelta(seconds=(round(data[3])))
-        self.label1.setText(str(data[0]) + '개 항목에서 <a style="color:#0078D7;">화성고등학교</a>까지의 거리 정보 수집 중')
+        self.label1.setText(str(data[0]) + '개 항목에서 <a style="color:#0078D7;">{}</a>까지의 거리 정보 수집 중'.format(data[6]))
         self.label3.setText('수집 항목: ' + str(data[1]) + ' (' + str(data[2]) + 'km)')
         self.label4.setText('남은 시간: 약 ' + str(self.label4_last_time) + ' 남음')
         self.label5.setText('남은 항목: ' + str(data[4]) + '개')
         if data[0] == data[5]:
-            self.label1.setText(str(self.emit_data[0]) + '개 항목에서 <a style="color:#0078D7;">화성고등학교</a>까지의  거리 정보 수집이 완료되었습니다.')
+            self.label1.setText(str(self.emit_data[0]) + '개 항목에서 <a style="color:#0078D7;">{}</a>까지의  거리 정보 수집이 완료되었습니다.'.format(data[6]))
             self.label4.setText('소요 시간: ' + str(datetime.timedelta(seconds=(round(self.et - self.st)))) + ' 소요됨')
 
     def info_system(self, percent):
@@ -155,6 +155,9 @@ class App_Process(QtWidgets.QMainWindow):
             self.close()
         elif check == 2:
             QtWidgets.QMessageBox.warning(self, 'Warning', 'Excel 파일을 닫고, 다시 시도하십시오.')
+            self.close()
+        elif check == 3:
+            QtWidgets.QMessageBox.warning(self, 'Warning', '도착 위치를 찾을 수 없습니다.')
             self.close()
 
     def closeEvent(self, event):
