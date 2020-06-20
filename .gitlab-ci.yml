@@ -48,7 +48,7 @@ version-beta:
   stage: version
   before_script:
     - git clone $GIT_URL
-    - mv -f mdf-resources\product.json product.json
+    - mv -f mdf-resources/product.json product.json
   script:
     - python package/vc.py -b
   artifacts:
@@ -67,7 +67,7 @@ version-stable:
     - git clone $GIT_URL
     - mv mdf-resources/resources/app/LICENSE public/
     - mv mdf-resources/resources/app/OpenSourceLicense.txt public/
-    - mv -f mdf-resources\product.json product.json
+    - mv -f mdf-resources/product.json product.json
   script:
     - python package/vc.py -r
   artifacts:
