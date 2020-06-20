@@ -61,7 +61,7 @@ version-stable:
   image: python:latest
   stage: version
   before_script:
-    - git clone $Env:GIT_URL
+    - git clone $GIT_URL
     - mv mdf-resources\resources\LICENSE public\
     - mv mdf-resources\resources\OpenSourceLicense.txt public\
   script:
