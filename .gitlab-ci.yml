@@ -8,7 +8,7 @@ stages:
   before_script:
     - git clone $Env:GIT_URL
     - mv mdf-resources\resources resources
-    - mv mdf-resources\product.json product.json
+    - mv -Force mdf-resources\product.json product.json
   tags:
     - shared-windows
     - windows
