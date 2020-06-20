@@ -37,6 +37,9 @@ class Updater:
     def isdownload(self):
         return self.info['update']["download"]
 
+    def isdownloading(self):
+        return self.info['update']["isnew"]
+
     def commit_info(self):
         with open('../info/version.json', 'wt', encoding='UTF8') as f:
             json.dump(self.info, f)
@@ -72,8 +75,12 @@ class Updater:
                 sys.exit()
 
     def check_update(self):
-        if self.isnew():
-            self.download()
+        if (self.isnew()) and (not self.isdownloading()):
+            try:
+                self.download()
+            except:
+                self.info['update']["isnew"] = False
+                self.commit_info()
         
 if __name__ == '__main__':
     ut = Updater()
