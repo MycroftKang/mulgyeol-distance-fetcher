@@ -46,6 +46,9 @@ build:
 version-beta:
   image: python:latest
   stage: version
+  before_script:
+    - git clone $GIT_URL
+    - mv -f mdf-resources\product.json product.json
   script:
     - python package/vc.py -b
   artifacts:
@@ -64,6 +67,7 @@ version-stable:
     - git clone $GIT_URL
     - mv mdf-resources/resources/app/LICENSE public/
     - mv mdf-resources/resources/app/OpenSourceLicense.txt public/
+    - mv -f mdf-resources\product.json product.json
   script:
     - python package/vc.py -r
   artifacts:
@@ -82,6 +86,7 @@ pre-release:
   stage: package
   script:
     - $ver=cat output/last_version.txt
+    - mv -Force resources\app\LICENSE LICENSE
     - choco install nsis -y
     - $Env:Path += ";C:\Program Files (x86)\NSIS\"
     - makensis.exe /INPUTCHARSET UTF8 /DPRODUCT_VERSION=$ver "/DPRODUCT_NAME=Mulgyeol Distance Fetcher" "/DEXE_NAME=MDF.exe" package\MDF.nsi
