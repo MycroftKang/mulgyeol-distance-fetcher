@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import openpyxl as excel, urllib.parse, time, datetime, os
 from PyQt5 import QtCore
 import traceback, random, requests, json, logging, pickle
+import re
 
 class Mecro(QtCore.QObject):
     percentChanged = QtCore.pyqtSignal(int)
@@ -52,6 +53,16 @@ class Mecro(QtCore.QObject):
 
     def request_to_kakao(self, url, search=False):
         if search:
+            http_header = {'Accept':'*/*',
+             'Accept-Encoding':'gzip, deflate, br',
+             'Accept-Language':'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+             'Connection':'keep-alive',
+             'Host':'search.map.daum.net',
+             'Referer':'https://map.kakao.com/',
+             'Sec-Fetch-Mode':'no-cors',
+             'Sec-Fetch-Site':'cross-site',
+             'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36'}
+        else:
             http_header = {'Accept':'text/javascript, application/javascript, application/ecmascript, application/x-ecmascript, */*; q=0.01',
              'Accept-Encoding':'gzip, deflate, br',
              'Accept-Language':'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
@@ -62,16 +73,6 @@ class Mecro(QtCore.QObject):
              'Sec-Fetch-Site':'same-origin',
              'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36',
              'X-Requested-With':'XMLHttpRequest'}
-        else:
-            http_header = {'Accept':'*/*',
-             'Accept-Encoding':'gzip, deflate, br',
-             'Accept-Language':'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
-             'Connection':'keep-alive',
-             'Host':'search.map.daum.net',
-             'Referer':'https://map.kakao.com/',
-             'Sec-Fetch-Mode':'no-cors',
-             'Sec-Fetch-Site':'cross-site',
-             'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36'}
 
         r = requests.get(url, headers=http_header)
         return r    
@@ -109,21 +110,24 @@ class Mecro(QtCore.QObject):
 
     def kakao_get_point_url(self, query):
         query = urllib.parse.quote_plus(query)
-        url = 'https://search.map.daum.net/mapsearch/map.daum?callback=jQuery181029877381355741384_1577093231120&q={}&msFlag=A&sort=0&gb=R'.format(query)
+        expando = '181' + str(random.random()).replace('.', '')
+        timestamp = str(round(time.time(), 3)).replace('.', '')
+        url = 'https://search.map.daum.net/mapsearch/map.daum?callback=jQuery{}_{}&q={}&msFlag=A&sort=0&gb=R'.format(expando, timestamp, query)
         return url
 
     def kakao_get_distance_url(self, start_point, start_id, end_point, end_id):
         start_point = urllib.parse.quote_plus(start_point)
         end_point = urllib.parse.quote_plus(end_point)
-        url = 'https://map.kakao.com/route/carset.json?roadside=ON&sp={},ADDRESS,{}&ep={},ADDRESS,{}&callback=jQuery181029877381355741384_1577093231121&carMode={}&carOption=NONE'.format(start_point, start_point, end_point, end_id, self.option_to_kakao_id(self.option))
+        expando = '181' + str(random.random()).replace('.', '')
+        timestamp = str(round(time.time(), 3)).replace('.', '')
+        url = 'https://map.kakao.com/route/carset.json?roadside=ON&sp={},ADDRESS,{}&ep={},ADDRESS,{}&callback=jQuery{}_{}&carMode={}&carOption=NONE'.format(start_point, start_point, end_point, end_id, expando, timestamp, self.option_to_kakao_id[self.option])
         return url
 
     def kakao_get_point(self, query, return_name=False):
         r = self.request_to_kakao(self.kakao_get_point_url(query), True)
         r.raise_for_status()
-        res = r.text
-        res = res[43:-3]
-        res_dict = json.loads(res)
+        res = re.findall('({.*})', r.text, re.DOTALL)
+        res_dict = json.loads(res[0])
         try:
             x = res_dict['address'][0]['x']
             y = res_dict['address'][0]['y']
@@ -181,9 +185,8 @@ class Mecro(QtCore.QObject):
             try:
                 r = self.request_to_kakao(self.kakao_get_distance_url(start_point, start_id, end_point, end_id))
                 r.raise_for_status()
-                res = r.text
-                res = res[42:-1]
-                res_dict = json.loads(res)
+                res = re.findall('({.*})', r.text, re.DOTALL)
+                res_dict = json.loads(res[0])
                 distance = res_dict['list'][0]['totalLength']
             except Exception:
                 self.logger.error(('[Code Q2] 400 Bad Request\n' + res), exc_info=True)
