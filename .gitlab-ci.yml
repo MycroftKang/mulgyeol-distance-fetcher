@@ -62,8 +62,8 @@ version-stable:
   stage: version
   before_script:
     - git clone $GIT_URL
-    - mv mdf-resources/resources/LICENSE public/
-    - mv mdf-resources/resources/OpenSourceLicense.txt public/
+    - mv mdf-resources/resources/app/LICENSE public/
+    - mv mdf-resources/resources/app/OpenSourceLicense.txt public/
   script:
     - python package/vc.py -r
   artifacts:
