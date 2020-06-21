@@ -62,11 +62,6 @@ FunctionEnd
 
 Function .onInit
 StrCpy $INSTDIR "$LOCALAPPDATA\Programs\${PRODUCT_NAME}"
-  ${GetParameters} $1
-  ClearErrors
-  ${GetOptions} $1 '/init' $R0
-  IfErrors +2 0
-  Abort
 CHECK:
   iffileexists "$ProgramFiles\${PRODUCT_NAME}\uninst.exe" YES NO
   YES:
@@ -87,6 +82,12 @@ Section "app" SEC01
   ; nsExec::Exec 'taskkill /f /im "Mulgyeol Software Update.exe"'
   SetOutPath "$INSTDIR"
   File "msu.exe"
+  ${GetParameters} $1
+  ClearErrors
+  ${GetOptions} $1 '/init' $R0
+  IfErrors +3 0
+  Exec "$INSTDIR\msu.exe"
+  Abort
   IfSilent +1 +2
   Exec "$INSTDIR\msu.exe /start"
   File "..\product.json"
