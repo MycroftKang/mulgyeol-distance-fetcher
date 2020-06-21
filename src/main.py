@@ -443,12 +443,10 @@ class WindowMgr:
     def _window_enum_callback(self, hwnd, wildcard):
         tid, pid = win32process.GetWindowThreadProcessId(hwnd)
         title = win32gui.GetWindowText(hwnd)
-        if (self.lock_pid == pid) and (title==wildcard):
-            handle = win32gui.FindWindowEx(None, hwnd, None, wildcard)
-            if handle:
-                win32gui.ShowWindow(handle, 9)
-                win32gui.SetForegroundWindow(handle)
-                win32gui.SetActiveWindow(handle)
+        if (self.lock_pid == pid) and (title == wildcard):    
+            win32gui.ShowWindow(hwnd, 9)
+            win32gui.SetForegroundWindow(hwnd)
+            win32gui.SetActiveWindow(hwnd)
 
     def find_window_wildcard(self, wildcard=PRODUCT_CONFIG['PRODUCT_NAME']):
         win32gui.EnumWindows(self._window_enum_callback, wildcard)
