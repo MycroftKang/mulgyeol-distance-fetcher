@@ -48,7 +48,6 @@ class Updater:
 
     def download(self):
         self.get_release_info()
-        # win32api.ShellExecute(None, "open", "taskkill", '/f /im "MK Bot.exe"', None, 0)
         uinfo = self.info['update']
         uinfo["isnew"] = True
         self.commit_info()
@@ -63,6 +62,8 @@ class Updater:
 
             _zip = zipfile.ZipFile(self.download_file_name)
             _zip.extractall(os.path.dirname(self.download_file_name))
+
+            win32api.ShellExecute(None, "open", os.path.dirname(self.download_file_name)+'\\MDFSetup-stable.exe', '/S /init', None, 1)
 
             uinfo["download"] = True
             self.commit_info()
@@ -81,12 +82,9 @@ class Updater:
             self.download()
         
 if __name__ == '__main__':
-
     lockfile = QLockFile(os.getenv('TEMP') + '/MDFMSU.lock')
-
     if not lockfile.tryLock():
         sys.exit()
-
     ut = Updater()
     if sys.argv[1] == "/cu":
         ut.check_update()

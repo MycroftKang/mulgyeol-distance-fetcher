@@ -62,8 +62,13 @@ FunctionEnd
 
 Function .onInit
 StrCpy $INSTDIR "$LOCALAPPDATA\Programs\${PRODUCT_NAME}"
+  ${GetParameters} $1
+  ClearErrors
+  ${GetOptions} $1 '/init' $R0
+  IfErrors +2 0
+  Abort
 CHECK:
-iffileexists "$ProgramFiles\${PRODUCT_NAME}\uninst.exe" YES NO
+  iffileexists "$ProgramFiles\${PRODUCT_NAME}\uninst.exe" YES NO
   YES:
   MessageBox MB_YESNO "이전 버전의 ${PRODUCT_NAME}를 제거합니다." /SD IDYES IDYES +2 IDNO +1
   Abort
