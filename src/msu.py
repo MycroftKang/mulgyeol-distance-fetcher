@@ -2,9 +2,10 @@ import requests
 import json
 import os, sys
 import zipfile
-import win32api
+import win32.win32api as win32api
 
 from app.product import PRODUCT_CONFIG
+from PyQt5.QtCore import QLockFile
 
 def version(v):
     ls = v.split(".")
@@ -29,6 +30,7 @@ class Updater:
             self.tags = data['tags']
         except Exception as e:
             print(e)
+            sys.exit()
 
     def isnew(self):
         self.get_release_info()
@@ -68,21 +70,23 @@ class Updater:
     def run_update(self, autorun=False):
         if self.isdownload:
             if autorun:
-                win32api.ShellExecute(None, "open", os.path.dirname(self.download_file_name)+'\\MDFSetup-stable.exe', '/S /autorun', None, 0)
-                sys.exit()
+                param = '/S /autorun'
             else:
-                win32api.ShellExecute(None, "open", os.path.dirname(self.download_file_name)+'\\MDFSetup-stable.exe', '/S', None, 0)
-                sys.exit()
+                param = '/S'
+            win32api.ShellExecute(None, "open", os.path.dirname(self.download_file_name)+'\\MDFSetup-stable.exe', param, None, 1)
+            sys.exit()
 
     def check_update(self):
-        if (self.isnew()) and (not self.isdownloading()):
-            try:
-                self.download()
-            except:
-                self.info['update']["isnew"] = False
-                self.commit_info()
+        if (self.isnew()) and (not self.isdownload()):
+            self.download()
         
 if __name__ == '__main__':
+
+    lockfile = QLockFile(os.getenv('TEMP') + '/MDFMSU.lock')
+
+    if not lockfile.tryLock():
+        sys.exit()
+
     ut = Updater()
     if sys.argv[1] == "/cu":
         ut.check_update()

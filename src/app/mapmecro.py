@@ -228,8 +228,9 @@ class Mecro(QtCore.QObject):
         for i in range(self.total):
             if self.online:
                 distance = 0
-                rand = random.uniform(self.config_list[1], self.config_list[2])
-                time.sleep(rand)
+                if i != 0:
+                    rand = random.uniform(self.config_list[1], self.config_list[2])
+                    time.sleep(rand)
                 if not self.online:
                     print('call break')
                     break

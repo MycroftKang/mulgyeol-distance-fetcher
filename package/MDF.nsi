@@ -61,13 +61,15 @@ Function RunMDF
 FunctionEnd
 
 Function .onInit
-StrCpy $INSTDIR "$LOCALAPPDATA\Programs\${PRODUCT_NAME}"  
+StrCpy $INSTDIR "$LOCALAPPDATA\Programs\${PRODUCT_NAME}"
+CHECK:
 iffileexists "$ProgramFiles\${PRODUCT_NAME}\uninst.exe" YES NO
   YES:
-  MessageBox MB_OK "이전 버전의 ${PRODUCT_NAME}를 제거한 후 다시 시도하십시오." /SD IDOK
-  IfSilent +3
-  ExecShell "runas" "$ProgramFiles\${PRODUCT_NAME}\uninst.exe"
+  MessageBox MB_YESNO "이전 버전의 ${PRODUCT_NAME}를 제거합니다." /SD IDYES IDYES +2 IDNO +1
   Abort
+  IfSilent +3
+  ExecShellWait "runas" "$ProgramFiles\${PRODUCT_NAME}\uninst.exe"
+  Goto CHECK
   ExecShellWait "runas" "$ProgramFiles\${PRODUCT_NAME}\uninst.exe /S"
   NO:
 FunctionEnd
@@ -97,6 +99,7 @@ Section "app" SEC01
   File /nonfatal /a /r "..\resources\visual\*"
   SetOutPath "$INSTDIR\info"
   File /nonfatal /a /r "info\*"
+  File "..\LICENSE"
   SetOutPath "$INSTDIR\data"
   SetOverwrite off
   File /nonfatal /a /r "data\*"
@@ -122,8 +125,6 @@ Section -Post
 SectionEnd
 
 Function .onInstSuccess
-  IfSilent +1 +2
-  nsExec::Exec 'taskkill /f /im "msu.exe"'
   ${GetParameters} $1
   ClearErrors
   ${GetOptions} $1 '/autorun' $R0

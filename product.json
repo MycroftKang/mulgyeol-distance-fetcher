@@ -1,6 +1,7 @@
 {
     "PRODUCT_NAME":"MDF-OSS",
     "EXE_NAME":"MDF-OSS.exe",
+    "LICENSE_URL":"https://github.com/MycroftKang/mulgyeol-distance-fetcher/blob/master/LICENSE",
     "VERSION_INFO_URL":null,
     "UPDATE_URL":null
 }

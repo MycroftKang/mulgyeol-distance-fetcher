@@ -1,6 +1,6 @@
 import json
 import sys
-import win32api
+import win32.win32api as win32api
 
 class UpdateDriver:
     def __init__(self, _software_info_file):
@@ -13,19 +13,19 @@ class UpdateDriver:
 
     def check_update(self):
         if getattr(sys, 'frozen', False):
-            win32api.ShellExecute(None, "open", '..\\update\\Update.exe', '/cu', None, 0)
+            win32api.ShellExecute(None, "open", '..\\update\\Update.exe', '/cu', None, 1)
         else:
             print('Call Check_Update')
         
     def run_update(self):
         if getattr(sys, 'frozen', False):
-            win32api.ShellExecute(None, "open", '..\\update\\Update.exe', '/ru', None, 0)
+            win32api.ShellExecute(None, "open", '..\\update\\Update.exe', '/ru', None, 1)
         else:
             print('Call Run_Update')
         
     def run_update_with_autorun(self):
         if getattr(sys, 'frozen', False):
-            win32api.ShellExecute(None, "open", '..\\update\\Update.exe', '/ruwa', None, 0)
+            win32api.ShellExecute(None, "open", '..\\update\\Update.exe', '/ruwa', None, 1)
         else:
             print('Call Run_Update_With_Autorun')
 

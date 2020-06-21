@@ -13,9 +13,6 @@ class App_Info(QtWidgets.QDialog):
         with open("..\\info\\version.json", 'rt') as f:
             info = json.load(f)
 
-        
-        # self.commit_version = text[1].split('.')[3]+'.'+text[1].split('.')[4]
-
         pixmap = QtGui.QPixmap('..\\resources\\app\\Mulgyeol Labs CI 3.0.png')
         pixmap = pixmap.scaledToHeight(50)
         lbl_img = QtWidgets.QLabel()
@@ -29,7 +26,7 @@ class App_Info(QtWidgets.QDialog):
         font.setPointSize(11)
         font.setFamily('Segoe UI')
         label1.setFont(font)
-        label3 = QtWidgets.QLabel('버전 {} <a href="https://github.com/MycroftKang/mulgyeol-distance-fetcher/releases">Release Note</a><br>커밋 {}'.format(info['version'], info['commit']))
+        label3 = QtWidgets.QLabel('<strong>Version</strong> {} <br><strong>Commit</strong> {}'.format(info['version'], info['commit']))
         label3.setOpenExternalLinks(True)
         font2 = label3.font()
         font2.setFamily('맑은 고딕')

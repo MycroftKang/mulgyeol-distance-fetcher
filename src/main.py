@@ -1,6 +1,6 @@
 import sys, os
 from PyQt5 import QtCore, QtGui, QtWidgets
-import pickle, win32api
+import pickle, win32.win32api as win32api
 import time, datetime, openpyxl as excel
 import sqlite3, json
 import time
@@ -11,6 +11,8 @@ from app.info import App_Info
 from app.process import App_Process
 
 from app.product import PRODUCT_CONFIG
+import win32.win32gui as win32gui
+import win32.win32process as win32process
 
 class Main_Window(QtWidgets.QMainWindow):
     def __init__(self):
@@ -63,6 +65,7 @@ class Main_Window(QtWidgets.QMainWindow):
         devconfigAction = QtWidgets.QAction('구성 변경', self)
         devconfigAction.triggered.connect(self.show_json)
         self.settingsMenu.addAction(configAction)
+        self.settingsMenu.addSeparator()
         self.settingsMenu.addAction(devconfigAction)
         exitAction = QtWidgets.QAction('끝내기', self)
         exitAction.triggered.connect(QtWidgets.qApp.quit)
@@ -77,8 +80,12 @@ class Main_Window(QtWidgets.QMainWindow):
             self.stay_on_top_flag = True
         stayontopAction.setShortcut('Ctrl+T')
         stayontopAction.triggered.connect(self.stay_on_top)
-        oplAction = QtWidgets.QAction('오픈소스 라이선스', self)
+        oplAction = QtWidgets.QAction('법적 공지', self)
         oplAction.triggered.connect(self.show_OSL)
+        releaseAction = QtWidgets.QAction('릴리스 정보', self)
+        releaseAction.triggered.connect(self.show_release_info)
+        reportissueAction = QtWidgets.QAction('문제 보고', self)
+        reportissueAction.triggered.connect(self.show_issue)
         licenseAction = QtWidgets.QAction('소프트웨어 라이선스', self)
         licenseAction.triggered.connect(self.show_SL)
         helpAction = QtWidgets.QAction('소프트웨어 정보', self)
@@ -102,11 +109,15 @@ class Main_Window(QtWidgets.QMainWindow):
         helpmenu = menubar.addMenu('도움말')
 
         helpmenu.aboutToShow.connect(self.renew_update)
-        helpmenu.addAction(self.updateAction)
+        helpmenu.addAction(releaseAction)
         helpmenu.addSeparator()
-        helpmenu.addAction(oplAction)
+        helpmenu.addAction(reportissueAction)
         helpmenu.addSeparator()
         helpmenu.addAction(licenseAction)
+        helpmenu.addAction(oplAction)
+        helpmenu.addSeparator()
+        helpmenu.addAction(self.updateAction)
+        helpmenu.addSeparator()
         helpmenu.addAction(helpAction)
         
         label1 = QtWidgets.QLabel('파일 위치:')
@@ -155,7 +166,6 @@ class Main_Window(QtWidgets.QMainWindow):
         label8.setFont(font1)
         self.lineedit7 = QtWidgets.QLineEdit()
         self.lineedit7.setFont(font1)
-        self.lineedit7.setReadOnly(True)
         self.set_lineedit7_text(self.config_list[0])
         btn2 = QtWidgets.QPushButton('시작', self)
         btn2.setFont(font1)
@@ -225,6 +235,12 @@ class Main_Window(QtWidgets.QMainWindow):
         self.setWindowIcon(QtGui.QIcon('..\\resources\\app\\MDF_Icon.png'))
         self.setWindowTitle(PRODUCT_CONFIG['PRODUCT_NAME'])
         self.show()
+
+    def show_issue(self):
+        win32api.ShellExecute(0, 'open', 'https://github.com/MycroftKang/mulgyeol-distance-fetcher/issues', None, None, 1)
+
+    def show_release_info(self):
+        win32api.ShellExecute(0, 'open', 'https://github.com/MycroftKang/mulgyeol-distance-fetcher/releases', None, None, 1)
 
     def show_json(self):
         win32api.ShellExecute(0, 'open', '..\\data\\settings\\settings.json', None, ".", 1)
@@ -360,7 +376,10 @@ class Main_Window(QtWidgets.QMainWindow):
         win32api.ShellExecute(0, 'open', 'https://mgylabs.gitlab.io/mulgyeol-distance-fetcher/OpenSourceLicense.txt', None, None, 1)
 
     def show_SL(self):
-        win32api.ShellExecute(0, 'open', 'https://mgylabs.gitlab.io/mulgyeol-distance-fetcher/LICENSE', None, None, 1)
+        url = 'https://mgylabs.gitlab.io/mulgyeol-distance-fetcher/LICENSE'
+        if (PRODUCT_CONFIG['LICENSE_URL'] != None) and (PRODUCT_CONFIG['LICENSE_URL'] != url):
+            url = PRODUCT_CONFIG['LICENSE_URL']
+        win32api.ShellExecute(0, 'open', url, None, None, 1)
 
     def set_lineedit7_text(self, platform):
         if self.json_settings['defalut']['enabled']:
@@ -417,7 +436,31 @@ class Main_Window(QtWidgets.QMainWindow):
                 UDriver.run_update()
         event.accept()
 
+class WindowMgr:
+    def __init__ (self, lock_pid):
+        self.lock_pid = lock_pid
+
+    def _window_enum_callback(self, hwnd, wildcard):
+        tid, pid = win32process.GetWindowThreadProcessId(hwnd)
+        title = win32gui.GetWindowText(hwnd)
+        if (self.lock_pid == pid) and (title==wildcard):
+            handle = win32gui.FindWindowEx(None, hwnd, None, wildcard)
+            if handle:
+                win32gui.ShowWindow(handle, 9)
+                win32gui.SetForegroundWindow(handle)
+                win32gui.SetActiveWindow(handle)
+
+    def find_window_wildcard(self, wildcard=PRODUCT_CONFIG['PRODUCT_NAME']):
+        win32gui.EnumWindows(self._window_enum_callback, wildcard)
+
 if __name__ == '__main__':
+    lockfile = QtCore.QLockFile(os.getenv('TEMP') + '/MDFE.lock')
+
+    if not lockfile.tryLock():
+        mgr = WindowMgr(lockfile.getLockInfo()[1])
+        mgr.find_window_wildcard()
+        sys.exit()
+    
     app = QtWidgets.QApplication(sys.argv)
     splash_pix = QtGui.QPixmap('..\\resources\\app\\Mulgyeol Labs splash.png')
     splash_pix = splash_pix.scaledToHeight(350)
