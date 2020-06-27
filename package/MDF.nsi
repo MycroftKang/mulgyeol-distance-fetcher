@@ -89,7 +89,7 @@ Section "app" SEC01
   Exec "$INSTDIR\msu.exe"
   Abort
   IfSilent +1 +2
-  Exec "$INSTDIR\msu.exe /start"
+  Exec "$INSTDIR\msu.exe /start ${OUTFILE_NAME}"
   File "..\product.json"
   SetOutPath "$INSTDIR\app"
   File "MDF.VisualElementsManifest.xml"
