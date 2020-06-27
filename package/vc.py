@@ -45,7 +45,10 @@ def build():
     cur['version'] = cur['version'].replace('.beta', '')
     cur['commit'] = os.getenv('CI_COMMIT_SHORT_SHA')
 
-    pd['insider']['commit'] = cur['commit']
+    try:
+        pd['insider']['commit'] = cur['commit']
+    except:
+        pd['insider'] = {"commit": cur['commit']}
 
     os.makedirs('output', exist_ok=True)
 
