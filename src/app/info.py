@@ -3,6 +3,7 @@ import json
 
 from app.product import PRODUCT_CONFIG
 
+
 class App_Info(QtWidgets.QDialog):
     def __init__(self, _fixed_width):
         super().__init__()
@@ -12,6 +13,14 @@ class App_Info(QtWidgets.QDialog):
     def initUI(self):
         with open("..\\info\\version.json", 'rt') as f:
             info = json.load(f)
+
+        with open("..\\data\\settings\\settings.json", 'rt', encoding='utf-8') as f:
+            settings = json.load(f)
+
+        if settings['insiderupdate']:
+            ustate = '<br><br>Insider Program에 참여 중입니다. 향후 베타 버전을 포함하여 업데이트를 받게 됩니다.'
+        else:
+            ustate = ''
 
         pixmap = QtGui.QPixmap('..\\resources\\app\\Mulgyeol Labs CI 3.0.png')
         pixmap = pixmap.scaledToHeight(50)
@@ -26,13 +35,15 @@ class App_Info(QtWidgets.QDialog):
         font.setPointSize(11)
         font.setFamily('Segoe UI')
         label1.setFont(font)
-        label3 = QtWidgets.QLabel('<strong>Version</strong> {} <br><strong>Commit</strong> {}'.format(info['version'], info['commit']))
+        label3 = QtWidgets.QLabel(
+            '<strong>Version</strong> {} <br><strong>Commit</strong> {}{}'.format(info['version'], info['commit'], ustate))
         label3.setOpenExternalLinks(True)
         font2 = label3.font()
         font2.setFamily('맑은 고딕')
         font2.setPointSize(9)
         label3.setFont(font2)
-        label2 = QtWidgets.QLabel('Copyright © 2020 Mulgyeol Labs. All Rights Reserved.')
+        label2 = QtWidgets.QLabel(
+            'Copyright © 2020 Mulgyeol Labs. All Rights Reserved.')
         label2.setFont(font2)
         hbox1 = QtWidgets.QHBoxLayout()
         hbox1.addWidget(lbl_img)
@@ -59,7 +70,8 @@ class App_Info(QtWidgets.QDialog):
 
     def show_window(self, _stay_on_top):
         if _stay_on_top:
-            self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowCloseButtonHint)
+            self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint |
+                                QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowCloseButtonHint)
         else:
             self.setWindowFlags(QtCore.Qt.Window)
         self.show()

@@ -4,8 +4,9 @@ python package\vc.py -lb
 cd src
 pyinstaller main.spec
 pyinstaller msu.spec
+move dist\msu\* dist\main
 move dist\main ..\build\app
-move dist\msu ..\build\update
+rmdir /s /q dist\msu
 xcopy ..\package\data ..\build
 xcopy /I /Y ..\package\info ..\build\info
 copy ..\product.json ..\build

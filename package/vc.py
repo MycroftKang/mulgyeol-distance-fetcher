@@ -1,16 +1,22 @@
 import json
-import sys, os
+import sys
+import os
+import requests
+
 
 def isfile(filename):
     return os.path.isfile(filename)
+
 
 def version(v):
     ls = v.split(".")
     re = list(map(int, (ls[:3])))
     return re
 
+
 def isnewupdate(base, last):
     return base[:-1] != last[:-1]
+
 
 def signature(ver):
     with open('product.json', 'rt') as f:
@@ -28,28 +34,39 @@ def signature(ver):
     with open('src/version_info.txt', 'wt') as f:
         f.write(text)
 
+
 def build():
     with open('package/info/version.json', 'rt') as f:
         cur = json.load(f)
 
+    r = requests.get(os.getenv('VESION_URL'))
+    pd = r.json()
+
     cur['version'] = cur['version'].replace('.beta', '')
     cur['commit'] = os.getenv('CI_COMMIT_SHORT_SHA')
+
+    pd['insider']['commit'] = cur['commit']
 
     os.makedirs('output', exist_ok=True)
 
     with open('output/last_version.txt', 'wt') as f:
         f.write(cur['version'])
-    
+
+    with open('public/version.json', 'wt') as f:
+        json.dump(pd, f)
+
     with open('package/info/version.json', 'wt') as f:
         json.dump(cur, f)
 
     signature(cur['version'])
 
+
 def local_build():
     with open('package/info/version.json', 'rt') as f:
         cur = json.load(f)
-    
+
     signature(cur['version'])
+
 
 def release():
     with open('package/info/version.json', 'rt') as f:
@@ -78,9 +95,10 @@ def release():
 
     signature(vd['version'])
 
-if '-b' in sys.argv:
+
+if os.getenv('CI_COMMIT_BRANCH'):
     build()
-elif '-r' in sys.argv:
+elif os.getenv('CI_COMMIT_TAG'):
     release()
-elif '-lb':
+elif '-lb' in sys.argv:
     local_build()

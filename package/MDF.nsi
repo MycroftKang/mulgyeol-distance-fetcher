@@ -52,7 +52,7 @@ BrandingText "Mulgyeol Labs"
 
 ; Caption "Mulgyeol Software Update - MDFE ${PRODUCT_VERSION}"
 Name "${PRODUCT_NAME}"
-OutFile "MDFSetup-stable.exe"
+OutFile "${OUTFILE_NAME}"
 InstallDir "$LOCALAPPDATA\Programs\${PRODUCT_NAME}"
 
 Function RunMDF
@@ -97,8 +97,6 @@ Section "app" SEC01
   CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
   CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk" "$INSTDIR\app\${EXE_NAME}"
   CreateShortCut "$DESKTOP\${PRODUCT_NAME}.lnk" "$INSTDIR\app\${EXE_NAME}"
-  SetOutPath "$INSTDIR\update"
-  File /nonfatal /a /r "..\build\update\*"
   SetOutPath "$INSTDIR\resources\app"
   File /nonfatal /a /r "..\resources\app\*"
   SetOutPath "$INSTDIR\app\visual"

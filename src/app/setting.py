@@ -2,13 +2,15 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import pickle
 from app.setting_window import setting_dialog
 
+
 class App_Setting(setting_dialog):
     setting_signal = QtCore.pyqtSignal(int)
 
     def __init__(self):
         self.dialog = QtWidgets.QDialog()
         super().setupUi(self.dialog)
-        self.dialog.setWindowIcon(QtGui.QIcon('..\\resources\\app\\MDF_Icon.png'))
+        self.dialog.setWindowIcon(QtGui.QIcon(
+            '..\\resources\\app\\MDF_Icon.png'))
         with open('..\\data\\bin\\config.bin', 'rb') as (f):
             self.config_list = pickle.load(f)
         self.pushButton.clicked.connect(self.save_setting)
@@ -39,7 +41,8 @@ class App_Setting(setting_dialog):
             network = 0
         else:
             network = 1
-        renew_config_list = [platform, self.waittime_start.value(), self.waittime_end.value(), self.waittime_item.value(), self.waittime_item_sec.value(), network, self.wait_again_min.value()]
+        renew_config_list = [platform, self.waittime_start.value(), self.waittime_end.value(
+        ), self.waittime_item.value(), self.waittime_item_sec.value(), network, self.wait_again_min.value()]
         with open('..\\data\\bin\\config.bin', 'wb') as (f):
             pickle.dump(renew_config_list, f)
         self.setting_signal.emit(platform)
@@ -47,7 +50,8 @@ class App_Setting(setting_dialog):
 
     def show(self, _stay_on_top):
         if _stay_on_top:
-            self.dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowCloseButtonHint)
+            self.dialog.setWindowFlags(
+                QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowCloseButtonHint)
         else:
             self.dialog.setWindowFlags(QtCore.Qt.Window)
         self.dialog.show()

@@ -1,18 +1,23 @@
-import sys, os
-from PyQt5 import QtCore, QtGui, QtWidgets
-import pickle, win32.win32api as win32api
-import time, datetime, openpyxl as excel
-import sqlite3, json
+import datetime
+import json
+import os
+import pickle
+import sqlite3
+import sys
 import time
 
-from update.UpdateDriver import UDriver
-from app.setting import App_Setting
-from app.info import App_Info
-from app.process import App_Process
-
-from app.product import PRODUCT_CONFIG
+import openpyxl as excel
+import win32.win32api as win32api
 import win32.win32gui as win32gui
 import win32.win32process as win32process
+from PyQt5 import QtCore, QtGui, QtWidgets
+
+from app.info import App_Info
+from app.process import App_Process
+from app.product import PRODUCT_CONFIG
+from app.setting import App_Setting
+from update.UpdateDriver import UDriver
+
 
 class Main_Window(QtWidgets.QMainWindow):
     def __init__(self):
@@ -52,7 +57,8 @@ class Main_Window(QtWidgets.QMainWindow):
         self.loadrencentMenu = QtWidgets.QMenu('최근 항목 불러오기', self)
         for i in range(len(datalist)):
             loadrecentAct = QtWidgets.QAction(datalist[i][0], self)
-            loadrecentAct.triggered.connect(lambda checked, item=datalist[i]: self.LoadRecentFile(item))
+            loadrecentAct.triggered.connect(
+                lambda checked, item=datalist[i]: self.LoadRecentFile(item))
             self.loadrencentMenu.addAction(loadrecentAct)
         removerecentAct = QtWidgets.QAction('최근에 불러온 항목 지우기', self)
         removerecentAct.triggered.connect(self.remove_recentfile)
@@ -76,7 +82,8 @@ class Main_Window(QtWidgets.QMainWindow):
             self.stay_on_top_flag = False
         else:
             stayontopAction.setChecked(True)
-            self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowCloseButtonHint)
+            self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint |
+                                QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowCloseButtonHint)
             self.stay_on_top_flag = True
         stayontopAction.setShortcut('Ctrl+T')
         stayontopAction.triggered.connect(self.stay_on_top)
@@ -119,7 +126,7 @@ class Main_Window(QtWidgets.QMainWindow):
         helpmenu.addAction(self.updateAction)
         helpmenu.addSeparator()
         helpmenu.addAction(helpAction)
-        
+
         label1 = QtWidgets.QLabel('파일 위치:')
         font1 = label1.font()
         font1.setFamily('맑은 고딕')
@@ -127,7 +134,7 @@ class Main_Window(QtWidgets.QMainWindow):
         label1.setFont(font1)
         self.lineedit1 = QtWidgets.QLineEdit()
         self.lineedit1.setFont(font1)
-        
+
         btn1 = QtWidgets.QPushButton('파일 찾기', self)
         btn1.setFont(font1)
         btn1.clicked.connect(self.showDialog)
@@ -140,12 +147,12 @@ class Main_Window(QtWidgets.QMainWindow):
         label3.setFont(font1)
         self.lineedit3 = QtWidgets.QLineEdit()
         self.lineedit3.setFont(font1)
-        
+
         label4 = QtWidgets.QLabel('끝 행:')
         label4.setFont(font1)
         self.lineedit4 = QtWidgets.QLineEdit()
         self.lineedit4.setFont(font1)
-        
+
         label5 = QtWidgets.QLabel('출력 열:')
         label5.setFont(font1)
         self.lineedit5 = QtWidgets.QLineEdit()
@@ -161,7 +168,7 @@ class Main_Window(QtWidgets.QMainWindow):
         label7.setFont(font1)
         self.lineedit6 = QtWidgets.QLineEdit()
         self.lineedit6.setFont(font1)
-        
+
         label8 = QtWidgets.QLabel('도착 위치:')
         label8.setFont(font1)
         self.lineedit7 = QtWidgets.QLineEdit()
@@ -173,7 +180,8 @@ class Main_Window(QtWidgets.QMainWindow):
         btn3 = QtWidgets.QPushButton('파일 열기', self)
         btn3.setFont(font1)
         btn3.clicked.connect(self.open_file)
-        copyright_label = QtWidgets.QLabel('© 2020 Mulgyeol Labs (Developed by 강태혁)')
+        copyright_label = QtWidgets.QLabel(
+            '© 2020 Mulgyeol Labs (Developed by 강태혁)')
         font2 = copyright_label.font()
         font2.setFamily('맑은 고딕')
         font2.setPointSize(9)
@@ -231,24 +239,29 @@ class Main_Window(QtWidgets.QMainWindow):
         self.info_win = App_Info(self.fixed_width)
         self.setting_win = App_Setting()
         self.setting_win.setting_signal.connect(self.set_lineedit7_text)
-        self.win_progress.closesignal.connect(self.show_window, QtCore.Qt.QueuedConnection)
+        self.win_progress.closesignal.connect(
+            self.show_window, QtCore.Qt.QueuedConnection)
         self.setWindowIcon(QtGui.QIcon('..\\resources\\app\\MDF_Icon.png'))
         self.setWindowTitle(PRODUCT_CONFIG['PRODUCT_NAME'])
         self.show()
 
     def show_issue(self):
-        win32api.ShellExecute(0, 'open', 'https://github.com/MycroftKang/mulgyeol-distance-fetcher/issues', None, None, 1)
+        win32api.ShellExecute(
+            0, 'open', 'https://github.com/MycroftKang/mulgyeol-distance-fetcher/issues', None, None, 1)
 
     def show_release_info(self):
-        win32api.ShellExecute(0, 'open', 'https://github.com/MycroftKang/mulgyeol-distance-fetcher/releases', None, None, 1)
+        win32api.ShellExecute(
+            0, 'open', 'https://github.com/MycroftKang/mulgyeol-distance-fetcher/releases', None, None, 1)
 
     def show_json(self):
-        win32api.ShellExecute(0, 'open', '..\\data\\settings\\settings.json', None, ".", 1)
+        win32api.ShellExecute(
+            0, 'open', '..\\data\\settings\\settings.json', None, ".", 1)
 
     def stay_on_top(self, state):
         if state:
             self.stay_on_top_flag = True
-            self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowCloseButtonHint)
+            self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint |
+                                QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowCloseButtonHint)
             with open('..\\data\\bin\\viewconfig.bin', 'wt') as (f):
                 f.write('1')
             self.show()
@@ -266,13 +279,16 @@ class Main_Window(QtWidgets.QMainWindow):
             try:
                 win32api.ShellExecute(0, 'open', file_address, None, None, 1)
             except:
-                QtWidgets.QMessageBox.warning(self, 'Warning', '파일 위치를 확인하십시오.', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
+                QtWidgets.QMessageBox.warning(
+                    self, 'Warning', '파일 위치를 확인하십시오.', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
         else:
-            QtWidgets.QMessageBox.warning(self, 'Warning', '먼저 파일을 불러오십시오.', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
+            QtWidgets.QMessageBox.warning(
+                self, 'Warning', '먼저 파일을 불러오십시오.', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
 
     def start_update_notice(self):
         if UDriver.isready():
-            reply = QtWidgets.QMessageBox.question(self, 'Mulgyeol Software Update', '최신버전의 소프트웨어 업데이트를 사용할 수  있습니다.\n업데이트를 시작하시겠습니까?', QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.Yes)
+            reply = QtWidgets.QMessageBox.question(self, 'Mulgyeol Software Update', '최신버전의 소프트웨어 업데이트를 사용할 수  있습니다.\n업데이트를 시작하시겠습니까?',
+                                                   QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.Yes)
             if reply == QtWidgets.QMessageBox.Yes:
                 self.auto_run = True
                 self.close()
@@ -283,7 +299,8 @@ class Main_Window(QtWidgets.QMainWindow):
             self.auto_run = True
             self.close()
         else:
-            QtWidgets.QMessageBox.information(self, 'Mulgyeol Software Update', '현재 사용할 수 있는 업데이트가 없습니다.', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
+            QtWidgets.QMessageBox.information(
+                self, 'Mulgyeol Software Update', '현재 사용할 수 있는 업데이트가 없습니다.', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
 
     def renew_update(self):
         if UDriver.isnew():
@@ -295,7 +312,8 @@ class Main_Window(QtWidgets.QMainWindow):
                 self.updateAction.setEnabled(False)
 
     def showDialog(self):
-        fname = QtWidgets.QFileDialog.getOpenFileName(self, '파일 찾기', (os.getenv('USERPROFILE') + '\\Desktop'), filter='Excel  파일 (*.xl* *.xlsx *.xlsm, *.xlsb *.xlam *.xltx *.xltm *.xls *.xla *.xlt *.xlm *.xlw);;모든 파일 (*.*)')
+        fname = QtWidgets.QFileDialog.getOpenFileName(self, '파일 찾기', (os.getenv(
+            'USERPROFILE') + '\\Desktop'), filter='Excel  파일 (*.xl* *.xlsx *.xlsm, *.xlsb *.xlam *.xltx *.xltm *.xls *.xla *.xlt *.xlm *.xlw);;모든 파일 (*.*)')
         file_address = fname[0]
         if file_address:
             self.lineedit1.setText(file_address)
@@ -314,7 +332,7 @@ class Main_Window(QtWidgets.QMainWindow):
         self.lineedit2.setText(data[1])
         self.lineedit3.setText(data[5])
         self.lineedit4.setText(data[3])
-        self.lineedit5.setText(data[6])     
+        self.lineedit5.setText(data[6])
         self.lineedit6.setText(data[2])
         self.cbox1.setCurrentIndex(data[4])
         # try:
@@ -340,40 +358,49 @@ class Main_Window(QtWidgets.QMainWindow):
             self.start_row = int(self.lineedit6.text())
             self.option = self.cbox1.currentIndex()
         except:
-            QtWidgets.QMessageBox.warning(self, 'Warning', '입력 내용을 확인하십시오.', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
+            QtWidgets.QMessageBox.warning(
+                self, 'Warning', '입력 내용을 확인하십시오.', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
             return
-        
-        data = [self.file_address, self.target, self.sheet_name, str(self.start_row), str(self.end_row), self.input_column, self.output_column, self.option]
-        
+
+        data = [self.file_address, self.target, self.sheet_name, str(self.start_row), str(
+            self.end_row), self.input_column, self.output_column, self.option]
+
         if '' in data:
-            QtWidgets.QMessageBox.warning(self, 'Warning', '입력 내용을 확인하십시오.', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
+            QtWidgets.QMessageBox.warning(
+                self, 'Warning', '입력 내용을 확인하십시오.', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
             return
 
         con = sqlite3.connect('..\\data\\bin\\data.db')
         cur = con.cursor()
-        cur.execute("SELECT * FROM RecentFile WHERE address=?;", (self.file_address, ))
+        cur.execute("SELECT * FROM RecentFile WHERE address=?;",
+                    (self.file_address, ))
         tdatalist = cur.fetchall()
 
         if not len(tdatalist) == 0:
-            cur.execute("UPDATE RecentFile SET sheet=?, start_row=?, end_row=?, option=? ,input_column=?, output_column=?, time=? WHERE address=?;", (self.sheet_name, str(self.start_row), str(self.end_row), self.option, self.input_column, self.output_column, time.time(), self.file_address))
+            cur.execute("UPDATE RecentFile SET sheet=?, start_row=?, end_row=?, option=? ,input_column=?, output_column=?, time=? WHERE address=?;", (
+                self.sheet_name, str(self.start_row), str(self.end_row), self.option, self.input_column, self.output_column, time.time(), self.file_address))
         else:
-            cur.execute("INSERT INTO RecentFile VALUES(?, ?, ?, ?, ?, ?, ?, ?);", (self.file_address, self.sheet_name, str(self.start_row), str(self.end_row), self.option, self.input_column, self.output_column, time.time()))
+            cur.execute("INSERT INTO RecentFile VALUES(?, ?, ?, ?, ?, ?, ?, ?);", (self.file_address, self.sheet_name, str(
+                self.start_row), str(self.end_row), self.option, self.input_column, self.output_column, time.time()))
         con.commit()
         con.close()
 
         self.renew_recentfile()
         try:
-            self.win_progress.setValue(self.file_address, self.target ,self.sheet_name, self.input_column, self.output_column, self.option, self.start_row, self.end_row, self.stay_on_top_flag)
+            self.win_progress.setValue(self.file_address, self.target, self.sheet_name, self.input_column,
+                                       self.output_column, self.option, self.start_row, self.end_row, self.stay_on_top_flag)
         except Exception as e:
             print('[Error]:', e)
-            QtWidgets.QMessageBox.warning(self, 'Warning', '입력 내용을 확인하십시오.', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
+            QtWidgets.QMessageBox.warning(
+                self, 'Warning', '입력 내용을 확인하십시오.', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.Yes)
             return
 
         self.hide()
         self.win_progress.show()
 
     def show_OSL(self):
-        win32api.ShellExecute(0, 'open', 'https://mgylabs.gitlab.io/mulgyeol-distance-fetcher/OpenSourceLicense.txt', None, None, 1)
+        win32api.ShellExecute(
+            0, 'open', 'https://mgylabs.gitlab.io/mulgyeol-distance-fetcher/OpenSourceLicense.txt', None, None, 1)
 
     def show_SL(self):
         url = 'https://mgylabs.gitlab.io/mulgyeol-distance-fetcher/LICENSE'
@@ -383,11 +410,14 @@ class Main_Window(QtWidgets.QMainWindow):
 
     def set_lineedit7_text(self, platform):
         if self.json_settings['defalut']['enabled']:
-            p_to_id = {0:"naver", 1:"kakao"}
-            self.lineedit7.setText(self.json_settings['defalut'][p_to_id[platform]]['arrivallocation'])
-            self.lineedit7.setReadOnly(self.json_settings['defalut'][p_to_id[platform]]['readonly'])
-            self.cbox1.setCurrentIndex(self.json_settings['defalut'][p_to_id[platform]]['option'])
-            
+            p_to_id = {0: "naver", 1: "kakao"}
+            self.lineedit7.setText(
+                self.json_settings['defalut'][p_to_id[platform]]['arrivallocation'])
+            self.lineedit7.setReadOnly(
+                self.json_settings['defalut'][p_to_id[platform]]['readonly'])
+            self.cbox1.setCurrentIndex(
+                self.json_settings['defalut'][p_to_id[platform]]['option'])
+
     def show_window(self, condition=False):
         if condition:
             self.show()
@@ -421,7 +451,8 @@ class Main_Window(QtWidgets.QMainWindow):
 
         for i in range(len(datalist)):
             loadrecentAct = QtWidgets.QAction(datalist[i][0], self)
-            loadrecentAct.triggered.connect(lambda checked, item=datalist[i]: self.LoadRecentFile(item))
+            loadrecentAct.triggered.connect(
+                lambda checked, item=datalist[i]: self.LoadRecentFile(item))
             self.loadrencentMenu.addAction(loadrecentAct)
         removerecentAct = QtWidgets.QAction('최근에 불러온 항목 지우기', self)
         removerecentAct.triggered.connect(self.remove_recentfile)
@@ -436,20 +467,22 @@ class Main_Window(QtWidgets.QMainWindow):
                 UDriver.run_update()
         event.accept()
 
+
 class WindowMgr:
-    def __init__ (self, lock_pid):
+    def __init__(self, lock_pid):
         self.lock_pid = lock_pid
 
     def _window_enum_callback(self, hwnd, wildcard):
         tid, pid = win32process.GetWindowThreadProcessId(hwnd)
         title = win32gui.GetWindowText(hwnd)
-        if (self.lock_pid == pid) and (title == wildcard):    
+        if (self.lock_pid == pid) and (title == wildcard):
             win32gui.ShowWindow(hwnd, 9)
             win32gui.SetForegroundWindow(hwnd)
             win32gui.SetActiveWindow(hwnd)
 
     def find_window_wildcard(self, wildcard=PRODUCT_CONFIG['PRODUCT_NAME']):
         win32gui.EnumWindows(self._window_enum_callback, wildcard)
+
 
 if __name__ == '__main__':
     lockfile = QtCore.QLockFile(os.getenv('TEMP') + '/MDFE.lock')
@@ -458,11 +491,12 @@ if __name__ == '__main__':
         mgr = WindowMgr(lockfile.getLockInfo()[1])
         mgr.find_window_wildcard()
         sys.exit()
-    
+
     app = QtWidgets.QApplication(sys.argv)
     splash_pix = QtGui.QPixmap('..\\resources\\app\\Mulgyeol Labs splash.png')
     splash_pix = splash_pix.scaledToHeight(350)
-    splash = QtWidgets.QSplashScreen(splash_pix, QtCore.Qt.WindowStaysOnTopHint)
+    splash = QtWidgets.QSplashScreen(
+        splash_pix, QtCore.Qt.WindowStaysOnTopHint)
     splash.show()
 
     UDriver.check_update()

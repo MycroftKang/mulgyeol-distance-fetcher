@@ -1,15 +1,16 @@
 {
-    "defalut":{
-        "enabled":true,
-        "naver":{
-            "arrivallocation":"화성고등학교정문",
-            "readonly":true,
-            "option":0
+    "defalut": {
+        "enabled": true,
+        "naver": {
+            "arrivallocation": "화성고등학교정문",
+            "readonly": true,
+            "option": 0
         },
-        "kakao":{
-            "arrivallocation":"경기 화성시 향남읍 장짐길 4",
-            "readonly":true,
-            "option":0
+        "kakao": {
+            "arrivallocation": "경기 화성시 향남읍 장짐길 4",
+            "readonly": true,
+            "option": 0
         }
-    }
+    },
+    "insiderupdate": false
 }

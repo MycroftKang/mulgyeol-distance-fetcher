@@ -131,3 +131,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 package/data/bin/data.db
+scripts/test.py
+package/MDFSetup-OSS.exe

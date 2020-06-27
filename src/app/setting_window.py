@@ -1,5 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class setting_dialog(QtCore.QObject):
 
     def setupUi(self, dialog):
@@ -132,7 +133,8 @@ class setting_dialog(QtCore.QObject):
     def retranslateUi(self, dialog):
         _translate = QtCore.QCoreApplication.translate
         dialog.setWindowTitle(_translate('dialog', '설정'))
-        self.title.setText(_translate('dialog', 'Mulgyeol Distance Fetcher 설정'))
+        self.title.setText(_translate(
+            'dialog', 'Mulgyeol Distance Fetcher 설정'))
         self.pushButton.setText(_translate('dialog', '확인'))
         self.pushButton_2.setText(_translate('dialog', '취소'))
         self.groupBox.setTitle(_translate('dialog', '기본 설정'))
@@ -145,9 +147,11 @@ class setting_dialog(QtCore.QObject):
         self.label_3.setText(_translate('dialog', '개 항목 수집 후'))
         self.label_4.setText(_translate('dialog', '분 추가 대기'))
         self.groupBox_2.setTitle(_translate('dialog', '오류 처리'))
-        self.subtitle_networkerror.setText(_translate('dialog', '네트워크 오류 발생 시'))
+        self.subtitle_networkerror.setText(
+            _translate('dialog', '네트워크 오류 발생 시'))
         self.radioButton_finish.setText(_translate('dialog', '정보 수집을 마칩니다.'))
-        self.radioButton_wait_again.setText(_translate('dialog', '설정된 시간 동안 대기한 후 다시 시도합니다.'))
+        self.radioButton_wait_again.setText(
+            _translate('dialog', '설정된 시간 동안 대기한 후 다시 시도합니다.'))
         self.label_7.setText(_translate('dialog', '분 대기'))
 
 

@@ -20,11 +20,19 @@
             "label": "package",
             "type": "shell",
             "command": "C:\\Program Files (x86)\\NSIS\\makensis.exe",
-            "args": ["/INPUTCHARSET", "UTF8", "/DPRODUCT_VERSION=Pre-release", "/DPRODUCT_NAME=MDF-OSS", "/DEXE_NAME=MDF-OSS.exe", "package\\MDF.nsi"],
+            "args": [
+                "/INPUTCHARSET",
+                "UTF8",
+                "/DPRODUCT_VERSION=Pre-release",
+                "/DPRODUCT_NAME=MDF-OSS",
+                "/DOUTFILE_NAME=MDFSetup-OSS.exe",
+                "/DEXE_NAME=MDF-OSS.exe",
+                "package\\MDF.nsi"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
-            "problemMatcher":[],
+            "problemMatcher": [],
             "group": {
                 "kind": "test",
                 "isDefault": true

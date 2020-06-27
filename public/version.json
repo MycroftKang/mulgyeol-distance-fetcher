@@ -1,6 +1,9 @@
 {
-    "name":"Mulgyeol Distance Fetcher",
-    "last-version":null,
-    "commit":null,
-    "tags":null
+    "name": "Mulgyeol Distance Fetcher",
+    "last-version": null,
+    "commit": null,
+    "tags": null,
+    "insider": {
+        "commit": null
+    }
 }

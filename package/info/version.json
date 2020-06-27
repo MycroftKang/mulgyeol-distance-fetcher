@@ -1,9 +1,10 @@
 {
-    "name":"Mulgyeol Distance Fetcher",
-    "version":"3.4.1.beta",
-    "commit":null,
-    "update":{
-        "isnew":false,
-        "download":false
+    "name": "Mulgyeol Distance Fetcher",
+    "version": "3.4.1.beta",
+    "commit": null,
+    "update": {
+        "isnew": false,
+        "download": false,
+        "isbeta": false
     }
 }

@@ -36,31 +36,14 @@ build:
     - cd src
     - pyinstaller main.spec
     - pyinstaller msu.spec
+    - mv -Force dist\msu dist\main
     - mv dist\main $Env:CI_PROJECT_DIR\build\app
-    - mv dist\msu $Env:CI_PROJECT_DIR\build\update
   artifacts:
     expire_in: 1h
     paths:
     - build\
 
-version-beta:
-  image: python:latest
-  stage: version
-  before_script:
-    - git clone $GIT_URL
-    - mv -f mdf-resources/product.json product.json
-  script:
-    - python package/vc.py -b
-  artifacts:
-    expire_in: 3h
-    paths:
-      - package/info/
-      - src/version_info.txt
-      - output/
-  only:
-    - master
-
-version-stable:
+versioning:
   image: python:latest
   stage: version
   before_script:
@@ -69,6 +52,7 @@ version-stable:
     - mv mdf-resources/resources/app/OpenSourceLicense.txt public/
     - mv -f mdf-resources/product.json product.json
   script:
+    - pip install requests
     - python package/vc.py -r
   artifacts:
     expire_in: 3h
@@ -78,6 +62,7 @@ version-stable:
       - src/version_info.txt
       - package/info/
   only:
+    - master
     - tags
 
 pre-release:
@@ -89,7 +74,7 @@ pre-release:
     - mv -Force resources\app\LICENSE LICENSE
     - choco install nsis -y
     - $Env:Path += ";C:\Program Files (x86)\NSIS\"
-    - makensis.exe /INPUTCHARSET UTF8 /DPRODUCT_VERSION=$ver "/DPRODUCT_NAME=Mulgyeol Distance Fetcher" "/DEXE_NAME=MDF.exe" package\MDF.nsi
+    - makensis.exe /INPUTCHARSET UTF8 /DPRODUCT_VERSION=$ver "/DPRODUCT_NAME=Mulgyeol Distance Fetcher" "/DOUTFILE_NAME=MDFSetup-beta.exe" "/DEXE_NAME=MDF.exe" package\MDF.nsi
     - mv package\MDFSetup-stable.exe .\
   artifacts:
     name: "MDFSetup-beta"
@@ -108,10 +93,11 @@ stable-release:
     - mv -Force resources\app\LICENSE LICENSE
     - choco install nsis -y
     - $Env:Path += ";C:\Program Files (x86)\NSIS\"
-    - makensis.exe /INPUTCHARSET UTF8 /DPRODUCT_VERSION=$ver "/DPRODUCT_NAME=Mulgyeol Distance Fetcher" "/DEXE_NAME=MDF.exe" package\MDF.nsi
+    - makensis.exe /INPUTCHARSET UTF8 /DPRODUCT_VERSION=$ver "/DPRODUCT_NAME=Mulgyeol Distance Fetcher" "/DOUTFILE_NAME=MDFSetup-stable.exe" "/DEXE_NAME=MDF.exe" package\MDF.nsi
     - mv package\MDFSetup-stable.exe .\
   artifacts:
     name: "MDFSetup-stable"
+    expire_in: 2 yrs
     paths:
     - .\*.exe
   only:
@@ -121,13 +107,9 @@ pages:
   stage: deploy
   script:
     - echo "pages"
-  needs:
-    - job: version-stable
-      artifacts: true
-    - job: stable-release
-      artifacts: false
   artifacts:
     paths:
       - public
   only:
+    - master
     - tags

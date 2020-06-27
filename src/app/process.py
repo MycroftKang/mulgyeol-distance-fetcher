@@ -1,8 +1,11 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-import time, datetime, json
+import time
+import datetime
+import json
 
 from app.worker import Worker
 from app.product import PRODUCT_CONFIG
+
 
 class App_Process(QtWidgets.QMainWindow):
     closesignal = QtCore.pyqtSignal(bool)
@@ -14,15 +17,20 @@ class App_Process(QtWidgets.QMainWindow):
         self.thread = QtCore.QThread()
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.start_work)
-        self.worker.percent_signal.connect(self.info_system, QtCore.Qt.QueuedConnection)
-        self.worker.label_signal.connect(self.setLabel, QtCore.Qt.QueuedConnection)
-        self.worker.permission_Signal.connect(self.permission_error, QtCore.Qt.QueuedConnection)
-        self.worker.wait_signal.connect(self.wait_info, QtCore.Qt.QueuedConnection)
+        self.worker.percent_signal.connect(
+            self.info_system, QtCore.Qt.QueuedConnection)
+        self.worker.label_signal.connect(
+            self.setLabel, QtCore.Qt.QueuedConnection)
+        self.worker.permission_Signal.connect(
+            self.permission_error, QtCore.Qt.QueuedConnection)
+        self.worker.wait_signal.connect(
+            self.wait_info, QtCore.Qt.QueuedConnection)
         self.initUI()
 
     def setValue(self, file_address, target, sheet_name, addr_column, distance_column, option, start_row, end_row, _stay_on_top):
         if _stay_on_top:
-            self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowCloseButtonHint)
+            self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint |
+                                QtCore.Qt.CustomizeWindowHint | QtCore.Qt.WindowCloseButtonHint)
         else:
             self.setWindowFlags(QtCore.Qt.Window)
         self.pbar.setRange(0, 0)
@@ -35,7 +43,8 @@ class App_Process(QtWidgets.QMainWindow):
         self.label4.setText('남은 시간: 계산 중...')
         self.label5.setText('남은 항목: 계산 중...')
         self.btn1.setEnabled(False)
-        self.worker.setValue(file_address, target, sheet_name, addr_column, distance_column, option, start_row, end_row)
+        self.worker.setValue(file_address, target, sheet_name,
+                             addr_column, distance_column, option, start_row, end_row)
         self.worker.fetcher.online = True
         self.st = time.time()
         self.thread.start()
@@ -122,13 +131,17 @@ class App_Process(QtWidgets.QMainWindow):
     def setLabel(self, data):
         self.emit_data = data
         self.label4_last_time = datetime.timedelta(seconds=(round(data[3])))
-        self.label1.setText(str(data[0]) + '개 항목에서 <a style="color:#0078D7;">{}</a>까지의 거리 정보 수집 중'.format(data[6]))
-        self.label3.setText('수집 항목: ' + str(data[1]) + ' (' + str(data[2]) + 'km)')
+        self.label1.setText(str(
+            data[0]) + '개 항목에서 <a style="color:#0078D7;">{}</a>까지의 거리 정보 수집 중'.format(data[6]))
+        self.label3.setText(
+            '수집 항목: ' + str(data[1]) + ' (' + str(data[2]) + 'km)')
         self.label4.setText('남은 시간: 약 ' + str(self.label4_last_time) + ' 남음')
         self.label5.setText('남은 항목: ' + str(data[4]) + '개')
         if data[0] == data[5]:
-            self.label1.setText(str(self.emit_data[0]) + '개 항목에서 <a style="color:#0078D7;">{}</a>까지의  거리 정보 수집이 완료되었습니다.'.format(data[6]))
-            self.label4.setText('소요 시간: ' + str(datetime.timedelta(seconds=(round(self.et - self.st)))) + ' 소요됨')
+            self.label1.setText(str(
+                self.emit_data[0]) + '개 항목에서 <a style="color:#0078D7;">{}</a>까지의  거리 정보 수집이 완료되었습니다.'.format(data[6]))
+            self.label4.setText(
+                '소요 시간: ' + str(datetime.timedelta(seconds=(round(self.et - self.st)))) + ' 소요됨')
 
     def info_system(self, percent):
         if percent == 0:
@@ -142,19 +155,23 @@ class App_Process(QtWidgets.QMainWindow):
             print('Thread 종료가 감지되었습니다.')
 
     def wait_info(self, time):
-        self.label1.setText('네트워크 오류(Abusing 감지)가 발생하여 ' + str(time) + '분 후 다시 시도합니다.')
+        self.label1.setText('네트워크 오류(Abusing 감지)가 발생하여 ' +
+                            str(time) + '분 후 다시 시도합니다.')
         self.label3.setText('수집 항목: 대기 중...')
         try:
-            self.label4.setText('남은 시간: ' + str(self.label4_last_time + datetime.timedelta(minutes=time)) + ' 남음')
+            self.label4.setText(
+                '남은 시간: ' + str(self.label4_last_time + datetime.timedelta(minutes=time)) + ' 남음')
         except:
             pass
 
     def permission_error(self, check=0):
         if check == 1:
-            QtWidgets.QMessageBox.warning(self, 'Warning', '네트워크 오류(Abusing 감지)가 발생했습니다.\n잠시 후 다시 시도하십시오.')
+            QtWidgets.QMessageBox.warning(
+                self, 'Warning', '네트워크 오류(Abusing 감지)가 발생했습니다.\n잠시 후 다시 시도하십시오.')
             self.close()
         elif check == 2:
-            QtWidgets.QMessageBox.warning(self, 'Warning', 'Excel 파일을 닫고, 다시 시도하십시오.')
+            QtWidgets.QMessageBox.warning(
+                self, 'Warning', 'Excel 파일을 닫고, 다시 시도하십시오.')
             self.close()
         elif check == 3:
             QtWidgets.QMessageBox.warning(self, 'Warning', '도착 위치를 찾을 수 없습니다.')

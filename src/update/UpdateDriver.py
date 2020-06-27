@@ -13,19 +13,19 @@ class UpdateDriver:
 
     def check_update(self):
         if getattr(sys, 'frozen', False):
-            win32api.ShellExecute(None, "open", '..\\update\\Update.exe', '/cu', None, 1)
+            win32api.ShellExecute(None, "open", 'Update.exe', '/cu', None, 1)
         else:
             print('Call Check_Update')
         
     def run_update(self):
         if getattr(sys, 'frozen', False):
-            win32api.ShellExecute(None, "open", '..\\update\\Update.exe', '/ru', None, 1)
+            win32api.ShellExecute(None, "open", 'Update.exe', '/ru', None, 1)
         else:
             print('Call Run_Update')
         
     def run_update_with_autorun(self):
         if getattr(sys, 'frozen', False):
-            win32api.ShellExecute(None, "open", '..\\update\\Update.exe', '/ruwa', None, 1)
+            win32api.ShellExecute(None, "open", 'Update.exe', '/ruwa', None, 1)
         else:
             print('Call Run_Update_With_Autorun')
 
