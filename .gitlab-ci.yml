@@ -36,7 +36,7 @@ build:
     - cd src
     - pyinstaller main.spec
     - pyinstaller msu.spec
-    - mv -Force dist\msu dist\main
+    - mv -Force dist\msu\* dist\main
     - mv dist\main $Env:CI_PROJECT_DIR\build\app
   artifacts:
     expire_in: 1h
