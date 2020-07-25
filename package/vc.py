@@ -39,24 +39,13 @@ def build():
     with open('package/info/version.json', 'rt') as f:
         cur = json.load(f)
 
-    r = requests.get(os.getenv('VESION_URL'))
-    pd = r.json()
-
     cur['version'] = cur['version'].replace('.beta', '')
     cur['commit'] = os.getenv('CI_COMMIT_SHORT_SHA')
-
-    try:
-        pd['insider']['commit'] = cur['commit']
-    except:
-        pd['insider'] = {"commit": cur['commit']}
 
     os.makedirs('output', exist_ok=True)
 
     with open('output/last_version.txt', 'wt') as f:
         f.write(cur['version'])
-
-    with open('public/version.json', 'wt') as f:
-        json.dump(pd, f)
 
     with open('package/info/version.json', 'wt') as f:
         json.dump(cur, f)
@@ -75,15 +64,20 @@ def release():
     with open('package/info/version.json', 'rt') as f:
         vd = json.load(f)
 
-    with open('public/version.json', 'rt') as f:
-        pd = json.load(f)
-
     vd['version'] = vd['version'].replace('.beta', '')
     vd['commit'] = os.getenv('CI_COMMIT_SHORT_SHA')
 
-    pd['last-version'] = vd['version']
-    pd['commit'] = os.getenv('CI_COMMIT_SHORT_SHA')
-    pd['tags'] = os.getenv('CI_COMMIT_TAG')
+    if '-rc' in os.getenv('CI_COMMIT_TAG'):
+        r = requests.get(os.getenv('VESION_URL'))
+        pd = r.json()
+        pd['insider'] = {"commit": vd['commit'],
+                         "tags": os.getenv('CI_COMMIT_TAG')}
+    else:
+        with open('public/version.json', 'rt') as f:
+            pd = json.load(f)
+        pd['last-version'] = vd['version']
+        pd['commit'] = os.getenv('CI_COMMIT_SHORT_SHA')
+        pd['tags'] = os.getenv('CI_COMMIT_TAG')
 
     os.makedirs('output', exist_ok=True)
 

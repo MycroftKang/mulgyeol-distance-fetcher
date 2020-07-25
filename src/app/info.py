@@ -17,7 +17,7 @@ class App_Info(QtWidgets.QDialog):
         with open("..\\data\\settings\\settings.json", 'rt', encoding='utf-8') as f:
             settings = json.load(f)
 
-        if settings['insiderupdate']:
+        if settings.get('insiderupdate', False):
             ustate = '<br><br>Insider Program에 참여 중입니다. 향후 베타 버전을 포함하여 업데이트를 받게 됩니다.'
         else:
             ustate = ''

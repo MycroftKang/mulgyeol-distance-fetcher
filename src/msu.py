@@ -22,7 +22,7 @@ class Updater:
             self.info = json.load(f)
 
         with open('../data/settings/settings.json', 'rt', encoding='UTF8') as f:
-            self.insider = json.load(f)['insiderupdate']
+            self.insider = json.load(f).get('insiderupdate', False)
 
         self.data = None
         self.cur = version(self.info['version'])
@@ -40,6 +40,7 @@ class Updater:
                 self.last_commit = data['commit']
                 self.tags = data['tags']
                 self.beta_commit = data['insider']['commit']
+                self.beta_tags = data['insider']['tags']
             except Exception as e:
                 print(e)
                 sys.exit()
@@ -61,9 +62,9 @@ class Updater:
 
     def download(self, beta=False):
         if beta:
-            utype = 'pre-release'
-            ref = 'master'
-            out = 'MDFSetup-beta.exe'
+            utype = 'stable-release'
+            ref = self.beta_tags
+            out = 'MDFSetup-stable.exe'
         else:
             utype = 'stable-release'
             ref = self.tags
