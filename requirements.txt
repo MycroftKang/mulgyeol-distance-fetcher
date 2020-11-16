@@ -18,7 +18,7 @@ PyInstaller==3.6
 pylint==2.5.3
 PyQt5==5.15.0
 PyQt5-sip==12.8.0
-pywin32==227
+pywin32==300
 pywin32-ctypes==0.2.0
 requests==2.23.0
 six==1.15.0
