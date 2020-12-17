@@ -20,7 +20,7 @@ PyQt5==5.15.0
 PyQt5-sip==12.8.0
 pywin32==227
 pywin32-ctypes==0.2.0
-requests==2.23.0
+requests==2.25.1
 six==1.15.0
 soupsieve==2.0.1
 toml==0.10.1
